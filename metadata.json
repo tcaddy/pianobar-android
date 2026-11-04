@@ -1,0 +1,6 @@
+{
+  "name": "Pianobar",
+  "description": "Android port of Pianobar, the terminal Pandora client, featuring Material Design 3, real background audio streaming, station management, and retro CLI mode.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
