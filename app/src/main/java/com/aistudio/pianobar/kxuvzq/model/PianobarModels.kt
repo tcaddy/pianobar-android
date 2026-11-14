@@ -14,8 +14,40 @@ data class Track(
     val isBookmarked: Boolean = false,
     val musicGenomeExplanation: String = "Rich piano melodies, mellow acoustic accompaniment, modal harmonic progressions, dynamic touch and gentle syncopation.",
     val audioBitrate: String = "AAC 192 kbps",
-    val year: String = "2024"
+    val year: String = "2024",
+    val fetchedAtMs: Long = System.currentTimeMillis()
 )
+
+object PlaylistCachePolicy {
+    // Pandora audio URLs are time-limited; treat batches older than 25 minutes as expired.
+    const val PLAYLIST_MAX_AGE_MS = 25L * 60L * 1000L
+    private const val EXPIRATION_SAFETY_MARGIN_SEC = 30L
+    private val EXP_PARAM_REGEX = Regex("(?:^|[?&])(?:e|exp|expires)=(\\d+)(?:&|$)", RegexOption.IGNORE_CASE)
+
+    fun isTrackExpired(track: Track, nowMs: Long = System.currentTimeMillis()): Boolean {
+        if (nowMs - track.fetchedAtMs >= PLAYLIST_MAX_AGE_MS) {
+            return true
+        }
+        val queryStart = track.streamUrl.indexOf('?')
+        if (queryStart >= 0 && queryStart < track.streamUrl.length - 1) {
+            val query = track.streamUrl.substring(queryStart)
+            val match = EXP_PARAM_REGEX.find(query)
+            val rawExp = match?.groupValues?.getOrNull(1)?.toLongOrNull()
+            if (rawExp != null) {
+                val expSec = if (rawExp > 10_000_000_000L) rawExp / 1000L else rawExp
+                val nowSec = nowMs / 1000L
+                if (nowSec >= expSec - EXPIRATION_SAFETY_MARGIN_SEC) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    fun isQueueExpired(tracks: Collection<Track>, nowMs: Long = System.currentTimeMillis()): Boolean {
+        return tracks.any { isTrackExpired(it, nowMs) }
+    }
+}
 
 data class Station(
     val id: String,

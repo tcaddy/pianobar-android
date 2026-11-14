@@ -16,11 +16,9 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaMetadata
-import android.media.Rating
 import android.media.session.MediaSession
 import android.media.session.PlaybackState
 import android.os.Build
-import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import coil.ImageLoader
@@ -56,12 +54,7 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
         const val ACTION_PAUSE = "com.aistudio.pianobar.kxuvzq.pianobar.ACTION_PAUSE"
         const val ACTION_TOGGLE = "com.aistudio.pianobar.kxuvzq.pianobar.ACTION_TOGGLE"
         const val ACTION_NEXT = "com.aistudio.pianobar.kxuvzq.pianobar.ACTION_NEXT"
-        const val ACTION_LOVE = "com.aistudio.pianobar.kxuvzq.pianobar.ACTION_LOVE"
-        const val ACTION_BAN = "com.aistudio.pianobar.kxuvzq.pianobar.ACTION_BAN"
         const val ACTION_STOP = "com.aistudio.pianobar.kxuvzq.pianobar.ACTION_STOP"
-
-        const val CUSTOM_ACTION_LOVE = "com.aistudio.pianobar.kxuvzq.pianobar.CUSTOM_ACTION_LOVE"
-        const val CUSTOM_ACTION_BAN = "com.aistudio.pianobar.kxuvzq.pianobar.CUSTOM_ACTION_BAN"
 
         fun start(context: Context) {
             val intent = Intent(context, PianobarPlaybackService::class.java).apply {
@@ -115,21 +108,6 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
                     playerManager.seekTo(pos)
                 }
 
-                override fun onSetRating(rating: Rating) {
-                    if (rating.isThumbUp) {
-                        playerManager.loveCurrentTrack()
-                    } else {
-                        playerManager.banCurrentTrack()
-                    }
-                }
-
-                override fun onCustomAction(action: String, extras: Bundle?) {
-                    when (action) {
-                        CUSTOM_ACTION_LOVE -> playerManager.loveCurrentTrack()
-                        CUSTOM_ACTION_BAN -> playerManager.banCurrentTrack()
-                    }
-                }
-
                 override fun onStop() {
                     playerManager.pause()
                     stopForeground(STOP_FOREGROUND_REMOVE)
@@ -144,10 +122,7 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
     private fun syncArtworkAndMetadata(state: PlayerState) {
         val track = state.currentTrack ?: return
 
-        // Update basic metadata immediately
-        updateMediaMetadata(track, state, currentArtworkBitmap)
-
-        // Asynchronously load artwork if URL changed
+        // If track changed, immediately load artwork asynchronously
         if (track.artworkUrl != currentArtworkUrl) {
             currentArtworkUrl = track.artworkUrl
             serviceScope.launch {
@@ -156,30 +131,35 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
                 updateMediaMetadata(track, state, loadedBitmap)
                 updateNotification(state)
             }
+        } else {
+            // Keep existing artwork bitmap on metadata update so lockscreen does not drop art
+            updateMediaMetadata(track, state, currentArtworkBitmap)
         }
     }
 
     private suspend fun loadArtwork(url: String): Bitmap = withContext(Dispatchers.IO) {
         try {
-            val loader = ImageLoader(this@PianobarPlaybackService)
-            val request = ImageRequest.Builder(this@PianobarPlaybackService)
-                .data(url)
-                .allowHardware(false)
-                .build()
-            val result = loader.execute(request)
-            if (result is SuccessResult) {
-                (result.drawable as? BitmapDrawable)?.bitmap
-            } else {
-                null
+            if (url.isNotBlank()) {
+                val loader = ImageLoader(this@PianobarPlaybackService)
+                val request = ImageRequest.Builder(this@PianobarPlaybackService)
+                    .data(url)
+                    .allowHardware(false)
+                    .build()
+                val result = loader.execute(request)
+                if (result is SuccessResult) {
+                    val bmp = (result.drawable as? BitmapDrawable)?.bitmap
+                    if (bmp != null) return@withContext bmp
+                }
             }
         } catch (e: Exception) {
-            null
-        } ?: BitmapFactory.decodeResource(resources, R.drawable.ic_pianobar_logo)
+            Log.w("PianobarService", "Could not load artwork from $url: ${e.message}")
+        }
+        BitmapFactory.decodeResource(resources, R.drawable.ic_pianobar_logo)
     }
 
     private fun updateMediaMetadata(track: Track, state: PlayerState, artwork: Bitmap?) {
         val stationName = state.currentStation?.name ?: "Pianobar Radio"
-        val fallbackBitmap = artwork ?: BitmapFactory.decodeResource(resources, R.drawable.ic_pianobar_logo)
+        val fallbackBitmap = artwork ?: currentArtworkBitmap ?: BitmapFactory.decodeResource(resources, R.drawable.ic_pianobar_logo)
 
         val metadataBuilder = MediaMetadata.Builder()
             .putString(MediaMetadata.METADATA_KEY_TITLE, track.title)
@@ -230,8 +210,6 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
             ACTION_PAUSE -> playerManager.pause()
             ACTION_TOGGLE -> playerManager.togglePlayPause()
             ACTION_NEXT -> playerManager.skipNext()
-            ACTION_LOVE -> playerManager.loveCurrentTrack()
-            ACTION_BAN -> playerManager.banCurrentTrack()
             ACTION_STOP -> {
                 playerManager.pause()
                 stopForeground(STOP_FOREGROUND_REMOVE)
@@ -314,7 +292,7 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
 
         val isPlaying = state.isPlaying
 
-        // Play/Pause action button
+        // Action 0: Play/Pause action button
         val playPauseIconRes = if (isPlaying) R.drawable.ic_notif_pause else R.drawable.ic_notif_play
         val playPauseLabel = if (isPlaying) "Pause (p)" else "Play (p)"
         val playPauseAction = Notification.Action.Builder(
@@ -323,14 +301,14 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
             togglePendingIntent
         ).build()
 
-        // Skip Next action button
+        // Action 1: Skip Next action button
         val nextAction = Notification.Action.Builder(
             Icon.createWithResource(this, R.drawable.ic_notif_skip),
             "Skip (n)",
             nextPendingIntent
         ).build()
 
-        // Stop / Close action
+        // Action 2: Stop / Close action
         val stopAction = Notification.Action.Builder(
             Icon.createWithResource(this, R.drawable.ic_notif_close),
             "Close",
@@ -345,7 +323,7 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
         }
 
         val mediaStyle = Notification.MediaStyle()
-            // Compact view displays Play/Pause and Next
+            // Compact view displays Play/Pause and Skip Next
             .setShowActionsInCompactView(0, 1)
         mediaSession?.let { mediaStyle.setMediaSession(it.sessionToken) }
 
@@ -355,7 +333,7 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
         builder.setContentTitle(title)
             .setContentText("$artist • $stationName")
             .setSubText("pianobar • ${track?.audioBitrate ?: "AAC 192k"}")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notif_play)
             .setLargeIcon(largeArt)
             .setContentIntent(openAppPendingIntent)
             .setVisibility(Notification.VISIBILITY_PUBLIC)

@@ -52,6 +52,12 @@ This document outlines key architectural guidelines, critical operational constr
 - Always use transparent PNGs for `ic_launcher_foreground` and mipmaps with proper alpha transparency around the logo contours.
 - Configure `android:windowSplashScreenBackground` and `android:windowSplashScreenIconBackgroundColor` to `@android:color/transparent` (or match the dark background `#0D1117`) in `themes.xml`.
 
+### Lockscreen & Media Notification Controls (DO NOT REVERT)
+- **No Love (`+`) or Ban (`-`) on Lockscreen/Notification**: Never add Thumbs Up / Love or Thumbs Down / Ban buttons, `MediaSession` custom actions (`addCustomAction`), or `onSetRating` handlers to `PianobarPlaybackService` or the lockscreen media player.
+- Keep lockscreen and notification controls strictly limited to **Play/Pause**, **Skip Next**, and **Close/Stop** (with `setShowActionsInCompactView(0, 1)`).
+- Song feedback (`love`/`ban`) belongs exclusively inside the in-app UI and CLI terminal.
+- Never silently restore previously removed UI/service controls while fixing an unrelated bug (such as fixing missing lockscreen album artwork).
+
 ---
 
 ## 4. Architecture & State Management

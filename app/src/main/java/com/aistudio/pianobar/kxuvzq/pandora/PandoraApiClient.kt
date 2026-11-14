@@ -34,9 +34,11 @@ sealed class PandoraAuthResult {
 class PandoraApiClient {
 
     private val httpClient: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(20, TimeUnit.SECONDS)
-        .writeTimeout(15, TimeUnit.SECONDS)
+        .connectTimeout(6, TimeUnit.SECONDS)
+        .readTimeout(8, TimeUnit.SECONDS)
+        .writeTimeout(6, TimeUnit.SECONDS)
+        .callTimeout(10, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
         .build()
 
     private val baseEndpoint = "https://tuner.pandora.com/services/json/"
@@ -48,6 +50,43 @@ class PandoraApiClient {
     private var userId: String? = null
     private var timeOffsetSec: Long = 0L // ph->timeOffset = realTimestamp - serverTimestamp
 
+    // Stored credentials for automatic session re-establishment after network reconnects (e.g. VPN/Tailscale)
+    private var lastUsername: String? = null
+    private var lastPassword: String? = null
+
+    fun resetNetworkConnections() {
+        try {
+            httpClient.connectionPool.evictAll()
+            httpClient.dispatcher.cancelAll()
+            Log.i("PandoraApiClient", "Evicted all cached HTTP connections and canceled pending calls.")
+        } catch (e: Exception) {
+            Log.w("PandoraApiClient", "Error evicting connections: ${e.message}")
+        }
+    }
+
+    fun clearSession() {
+        partnerId = null
+        partnerAuthToken = null
+        userAuthToken = null
+        userId = null
+        timeOffsetSec = 0L
+        lastUsername = null
+        lastPassword = null
+        resetNetworkConnections()
+    }
+
+    suspend fun reauthenticateIfNeeded(): Boolean = withContext(Dispatchers.IO) {
+        val user = lastUsername
+        val pass = lastPassword
+        if (!user.isNullOrBlank() && !pass.isNullOrBlank()) {
+            resetNetworkConnections()
+            val result = loginAndFetchStations(user, pass)
+            result is PandoraAuthResult.Success
+        } else {
+            false
+        }
+    }
+
     /**
      * Calculates time_t timestamp = time(NULL) - ph->timeOffset as in request.c
      */
@@ -57,6 +96,8 @@ class PandoraApiClient {
     }
 
     suspend fun loginAndFetchStations(user: String, pass: String): PandoraAuthResult = withContext(Dispatchers.IO) {
+        lastUsername = user.trim()
+        lastPassword = pass.trim()
         try {
             // Step 0: auth.partnerLogin
             val partnerError = executePartnerLogin()
@@ -85,11 +126,12 @@ class PandoraApiClient {
                 .header("User-Agent", "pianobar-2024.12.21")
                 .build()
 
-            val response = httpClient.newCall(req).execute()
-            val respBody = response.body?.string() ?: ""
+            val (isSuccessful, code, respBody) = httpClient.newCall(req).execute().use { response ->
+                Triple(response.isSuccessful, response.code, response.body?.string() ?: "")
+            }
 
-            if (!response.isSuccessful) {
-                return@withContext PandoraAuthResult.Error("Pandora server HTTP ${response.code}")
+            if (!isSuccessful) {
+                return@withContext PandoraAuthResult.Error("Pandora server HTTP $code")
             }
 
             val json = JSONObject(respBody)
@@ -144,10 +186,11 @@ class PandoraApiClient {
             .build()
 
         val localRealTimestamp = System.currentTimeMillis() / 1000L
-        val response = httpClient.newCall(req).execute()
-        val respBody = response.body?.string() ?: ""
-        if (!response.isSuccessful) {
-            return "Partner handshake rejected with HTTP ${response.code}"
+        val (isSuccessful, code, respBody) = httpClient.newCall(req).execute().use { response ->
+            Triple(response.isSuccessful, response.code, response.body?.string() ?: "")
+        }
+        if (!isSuccessful) {
+            return "Partner handshake rejected with HTTP $code"
         }
 
         val json = JSONObject(respBody)
@@ -191,8 +234,9 @@ class PandoraApiClient {
                 .header("User-Agent", "pianobar-2024.12.21")
                 .build()
 
-            val response = httpClient.newCall(req).execute()
-            val respBody = response.body?.string() ?: ""
+            val respBody = httpClient.newCall(req).execute().use { response ->
+                response.body?.string() ?: ""
+            }
             val json = JSONObject(respBody)
 
             if (json.optString("stat") != "ok") {
@@ -231,6 +275,11 @@ class PandoraApiClient {
     }
 
     suspend fun fetchStationPlaylist(stationTokenOrId: String): List<Track> = withContext(Dispatchers.IO) {
+        if (userAuthToken == null || partnerId == null) {
+            if (!reauthenticateIfNeeded()) {
+                return@withContext emptyList()
+            }
+        }
         val uToken = userAuthToken ?: return@withContext emptyList()
         val pId = partnerId ?: return@withContext emptyList()
         val uId = userId ?: ""
@@ -254,75 +303,130 @@ class PandoraApiClient {
                 .header("User-Agent", "pianobar-2024.12.21")
                 .build()
 
-            val response = httpClient.newCall(req).execute()
-            val respBody = response.body?.string() ?: ""
+            val respBody = httpClient.newCall(req).execute().use { response ->
+                response.body?.string() ?: ""
+            }
             val json = JSONObject(respBody)
 
             if (json.optString("stat") != "ok") {
+                val errCode = json.optInt("code", 0)
                 Log.w("PandoraApiClient", "Failed to retrieve playlist: $respBody")
+                // Session expired / auth invalid -> re-authenticate and retry once
+                if (errCode == 1003 || errCode == 1001 || errCode == 1000) {
+                    Log.i("PandoraApiClient", "Session token expired (code $errCode). Re-authenticating...")
+                    if (reauthenticateIfNeeded()) {
+                        return@withContext fetchStationPlaylistInternal(stationTokenOrId)
+                    }
+                }
                 return@withContext emptyList()
             }
 
-            val resultObj = json.getJSONObject("result")
-            val itemsArray = resultObj.optJSONArray("items") ?: return@withContext emptyList()
-            val tracks = mutableListOf<Track>()
-
-            for (i in 0 until itemsArray.length()) {
-                val item = itemsArray.getJSONObject(i)
-                val songTitle = item.optString("songName", "")
-                if (songTitle.isBlank()) continue
-
-                val artistName = item.optString("artistName", "Unknown Artist")
-                val albumName = item.optString("albumName", "Pandora Radio")
-                val artUrl = item.optString("albumArtUrl", "")
-                val trackToken = item.optString("trackToken", "track_$i")
-                val songDuration = item.optLong("songDuration", 180L) * 1000L
-
-                var streamUrl = ""
-                var audioBitrate = "128 kbps"
-                if (item.has("audioUrlMap")) {
-                    val urlMap = item.getJSONObject("audioUrlMap")
-                    val qualityKey = when {
-                        urlMap.has("highQuality") -> "highQuality"
-                        urlMap.has("mediumQuality") -> "mediumQuality"
-                        urlMap.has("lowQuality") -> "lowQuality"
-                        else -> null
-                    }
-                    if (qualityKey != null) {
-                        val qObj = urlMap.getJSONObject(qualityKey)
-                        streamUrl = qObj.optString("audioUrl", "")
-                        val encoding = qObj.optString("encoding", "aacplus")
-                        val bitrate = qObj.optString("bitrate", if (qualityKey == "highQuality") "128" else "64")
-                        audioBitrate = "$encoding $bitrate kbps"
-                    }
-                }
-                if (streamUrl.isBlank()) {
-                    streamUrl = item.optString("audioUrl", "")
-                }
-
-                if (streamUrl.isNotBlank()) {
-                    tracks.add(
-                        Track(
-                            id = trackToken,
-                            title = songTitle,
-                            artist = artistName,
-                            album = albumName,
-                            artworkUrl = artUrl.ifBlank { "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80" },
-                            durationMs = songDuration,
-                            streamUrl = streamUrl,
-                            stationId = stationTokenOrId,
-                            musicGenomeExplanation = "Live stream served by Pandora Music Genome for station '$stationTokenOrId'.",
-                            audioBitrate = audioBitrate,
-                            year = item.optString("year", "")
-                        )
-                    )
-                }
-            }
-            tracks
+            parsePlaylistTracks(json, stationTokenOrId)
         } catch (e: Exception) {
-            Log.e("PandoraApiClient", "Error fetching playlist", e)
+            Log.e("PandoraApiClient", "Error fetching playlist: ${e.message}. Attempting network reset and re-auth...", e)
+            resetNetworkConnections()
+            // If network route changed (e.g. Tailscale or VPN toggled), re-authenticate and retry once
+            try {
+                if (reauthenticateIfNeeded()) {
+                    Log.i("PandoraApiClient", "Re-authenticated after network error. Retrying playlist fetch...")
+                    return@withContext fetchStationPlaylistInternal(stationTokenOrId)
+                }
+            } catch (retryEx: Exception) {
+                Log.e("PandoraApiClient", "Retry failed: ${retryEx.message}")
+            }
             emptyList()
         }
+    }
+
+    private fun fetchStationPlaylistInternal(stationTokenOrId: String): List<Track> {
+        val uToken = userAuthToken ?: return emptyList()
+        val pId = partnerId ?: return emptyList()
+        val uId = userId ?: ""
+
+        val playlistPayload = JSONObject().apply {
+            put("userAuthToken", uToken)
+            put("stationToken", stationTokenOrId)
+            put("includeTrackLength", true)
+            put("additionalAudioUrl", "HTTP_128_MP3,HTTP_64_AACPLUS_ADTS,HTTP_32_AACPLUS_ADTS")
+            put("syncTime", getCurrentSyncTime())
+        }.toString()
+
+        val encryptedPayload = PandoraBlowfishCrypto.encrypt(playlistPayload)
+        val playlistUrl = "$baseEndpoint?method=station.getPlaylist&auth_token=${URLEncoder.encode(uToken, "UTF-8")}&partner_id=$pId&user_id=${URLEncoder.encode(uId, "UTF-8")}"
+
+        val req = Request.Builder()
+            .url(playlistUrl)
+            .post(encryptedPayload.toRequestBody(textPlainMedia))
+            .header("User-Agent", "pianobar-2024.12.21")
+            .build()
+
+        val respBody = httpClient.newCall(req).execute().use { response ->
+            response.body?.string() ?: ""
+        }
+        val json = JSONObject(respBody)
+        if (json.optString("stat") != "ok") return emptyList()
+        return parsePlaylistTracks(json, stationTokenOrId)
+    }
+
+    private fun parsePlaylistTracks(json: JSONObject, stationTokenOrId: String): List<Track> {
+        val resultObj = json.optJSONObject("result") ?: return emptyList()
+        val itemsArray = resultObj.optJSONArray("items") ?: return emptyList()
+        val tracks = mutableListOf<Track>()
+        val batchFetchedAtMs = System.currentTimeMillis()
+
+        for (i in 0 until itemsArray.length()) {
+            val item = itemsArray.getJSONObject(i)
+            val songTitle = item.optString("songName", "")
+            if (songTitle.isBlank()) continue
+
+            val artistName = item.optString("artistName", "Unknown Artist")
+            val albumName = item.optString("albumName", "Pandora Radio")
+            val artUrl = item.optString("albumArtUrl", "")
+            val trackToken = item.optString("trackToken", "track_$i")
+            val songDuration = item.optLong("songDuration", 180L) * 1000L
+
+            var streamUrl = ""
+            var audioBitrate = "128 kbps"
+            if (item.has("audioUrlMap")) {
+                val urlMap = item.getJSONObject("audioUrlMap")
+                val qualityKey = when {
+                    urlMap.has("highQuality") -> "highQuality"
+                    urlMap.has("mediumQuality") -> "mediumQuality"
+                    urlMap.has("lowQuality") -> "lowQuality"
+                    else -> null
+                }
+                if (qualityKey != null) {
+                    val qObj = urlMap.getJSONObject(qualityKey)
+                    streamUrl = qObj.optString("audioUrl", "")
+                    val encoding = qObj.optString("encoding", "aacplus")
+                    val bitrate = qObj.optString("bitrate", if (qualityKey == "highQuality") "128" else "64")
+                    audioBitrate = "$encoding $bitrate kbps"
+                }
+            }
+            if (streamUrl.isBlank()) {
+                streamUrl = item.optString("audioUrl", "")
+            }
+
+            if (streamUrl.isNotBlank()) {
+                tracks.add(
+                    Track(
+                        id = trackToken,
+                        title = songTitle,
+                        artist = artistName,
+                        album = albumName,
+                        artworkUrl = artUrl.ifBlank { "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80" },
+                        durationMs = songDuration,
+                        streamUrl = streamUrl,
+                        stationId = stationTokenOrId,
+                        musicGenomeExplanation = "Live stream served by Pandora Music Genome for station '$stationTokenOrId'.",
+                        audioBitrate = audioBitrate,
+                        year = item.optString("year", ""),
+                        fetchedAtMs = batchFetchedAtMs
+                    )
+                )
+            }
+        }
+        return tracks
     }
 
     /**
