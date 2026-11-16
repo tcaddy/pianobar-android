@@ -1,21 +1,19 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Preserve line numbers and anonymized source file attribute for Play Console crash deobfuscation
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Preserve Kotlin metadata and model classes
+-keepattributes RuntimeVisibleAnnotations,AnnotationDefault
+-keep class com.aistudio.pianobar.kxuvzq.model.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Keep AndroidManifest entry points cleanly
+-keep class com.aistudio.pianobar.kxuvzq.PianobarApp { *; }
+-keep class com.aistudio.pianobar.kxuvzq.MainActivity { *; }
+-keep class com.aistudio.pianobar.kxuvzq.service.PianobarPlaybackService { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Suppress harmless compile-only annotation warnings from transitive dependencies
+-dontwarn javax.annotation.**
+-dontwarn org.codehaus.mojo.animal_sniffer.**
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
