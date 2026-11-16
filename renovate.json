@@ -5,26 +5,18 @@
   ],
   "packageRules": [
     {
-      "description": "Group Kotlin compiler/plugins and KSP together (strictly version-coupled)",
-      "matchManagers": ["gradle"],
-      "matchPackageNames": [
-        "/^org\\.jetbrains\\.kotlin/",
-        "/^com\\.google\\.devtools\\.ksp/"
-      ],
-      "groupName": "Kotlin and KSP",
-      "groupSlug": "kotlin-ksp"
-    },
-    {
-      "description": "Group Android Gradle Plugin and Gradle wrapper together",
+      "description": "Group AGP (with built-in Kotlin), Kotlin/Compose compiler plugins, KSP, and Gradle wrapper together",
       "matchManagers": ["gradle", "gradle-wrapper"],
       "matchPackageNames": [
         "/^com\\.android\\.application/",
         "/^com\\.android\\.library/",
         "/^com\\.android\\.tools\\.build/",
+        "/^org\\.jetbrains\\.kotlin/",
+        "/^com\\.google\\.devtools\\.ksp/",
         "gradle"
       ],
-      "groupName": "Android Gradle Plugin and Gradle",
-      "groupSlug": "agp-gradle"
+      "groupName": "Android Build Toolchain",
+      "groupSlug": "android-build-toolchain"
     },
     {
       "description": "Group Jetpack Compose BOM, Compose libraries, and Activity Compose",
