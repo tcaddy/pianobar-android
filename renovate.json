@@ -1,3 +1,93 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json"
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "description": "Group Kotlin compiler/plugins and KSP together (strictly version-coupled)",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": [
+        "/^org\\.jetbrains\\.kotlin/",
+        "/^com\\.google\\.devtools\\.ksp/"
+      ],
+      "groupName": "Kotlin and KSP",
+      "groupSlug": "kotlin-ksp"
+    },
+    {
+      "description": "Group Android Gradle Plugin and Gradle wrapper together",
+      "matchManagers": ["gradle", "gradle-wrapper"],
+      "matchPackageNames": [
+        "/^com\\.android\\.application/",
+        "/^com\\.android\\.library/",
+        "/^com\\.android\\.tools\\.build/",
+        "gradle"
+      ],
+      "groupName": "Android Gradle Plugin and Gradle",
+      "groupSlug": "agp-gradle"
+    },
+    {
+      "description": "Group Jetpack Compose BOM, Compose libraries, and Activity Compose",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": [
+        "/^androidx\\.compose/",
+        "androidx.activity:activity-compose"
+      ],
+      "groupName": "Jetpack Compose",
+      "groupSlug": "jetpack-compose"
+    },
+    {
+      "description": "Group AndroidX Lifecycle libraries together",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": [
+        "/^androidx\\.lifecycle:/"
+      ],
+      "groupName": "AndroidX Lifecycle",
+      "groupSlug": "androidx-lifecycle"
+    },
+    {
+      "description": "Group Kotlinx Coroutines libraries together",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": [
+        "/^org\\.jetbrains\\.kotlinx:kotlinx-coroutines/"
+      ],
+      "groupName": "Kotlinx Coroutines",
+      "groupSlug": "kotlinx-coroutines"
+    },
+    {
+      "description": "Group OkHttp artifacts together",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": [
+        "/^com\\.squareup\\.okhttp3:/"
+      ],
+      "groupName": "OkHttp",
+      "groupSlug": "okhttp"
+    },
+    {
+      "description": "Group Coil artifacts together (covers Coil 2 and Coil 3 modules)",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": [
+        "/^io\\.coil-kt/"
+      ],
+      "groupName": "Coil",
+      "groupSlug": "coil"
+    },
+    {
+      "description": "Group unit and AndroidX testing libraries together",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": [
+        "junit:junit",
+        "/^androidx\\.test/",
+        "org.robolectric:robolectric"
+      ],
+      "groupName": "Testing Libraries",
+      "groupSlug": "testing"
+    },
+    {
+      "description": "Group GitHub Actions workflow dependencies together",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "groupSlug": "github-actions"
+    }
+  ]
 }
