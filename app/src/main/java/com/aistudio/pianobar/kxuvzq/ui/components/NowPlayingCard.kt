@@ -19,18 +19,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Radio
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.ThumbDown
-import androidx.compose.material.icons.outlined.ThumbDown
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -53,9 +45,11 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -144,7 +138,7 @@ fun NowPlayingCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Radio,
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_icon_radio),
                         contentDescription = "Station",
                         tint = PianoCyan,
                         modifier = Modifier.size(16.dp)
@@ -198,7 +192,7 @@ fun NowPlayingCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.MusicNote,
+                            imageVector = ImageVector.vectorResource(R.drawable.ic_notif_music),
                             contentDescription = "Generic Music Note",
                             tint = TextSecondary,
                             modifier = Modifier.size(64.dp)
@@ -358,7 +352,9 @@ fun NowPlayingCard(
                         .testTag("ban_button")
                 ) {
                     Icon(
-                        imageVector = if (isBanned) Icons.Default.ThumbDown else Icons.Outlined.ThumbDown,
+                        imageVector = ImageVector.vectorResource(
+                            if (isBanned) R.drawable.ic_icon_thumb_down else R.drawable.ic_icon_thumb_down_outlined
+                        ),
                         contentDescription = "Ban Song (-)",
                         tint = if (isBanned) PianoRed else TextSecondary,
                         modifier = Modifier.size(24.dp)
@@ -385,7 +381,11 @@ fun NowPlayingCard(
                         )
                     } else {
                         Icon(
-                            imageVector = if (state.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            imageVector = if (state.isPlaying) {
+                                ImageVector.vectorResource(R.drawable.ic_notif_pause)
+                            } else {
+                                Icons.Default.PlayArrow
+                            },
                             contentDescription = if (state.isPlaying) "Pause (p)" else "Play (p)",
                             modifier = Modifier.size(36.dp)
                         )
@@ -400,7 +400,7 @@ fun NowPlayingCard(
                         .testTag("skip_next_button")
                 ) {
                     Icon(
-                        imageVector = Icons.Default.SkipNext,
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_notif_skip),
                         contentDescription = "Skip Song (n)",
                         tint = TextPrimary,
                         modifier = Modifier.size(30.dp)
@@ -415,7 +415,9 @@ fun NowPlayingCard(
                         .testTag("bookmark_button")
                 ) {
                     Icon(
-                        imageVector = if (isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                        imageVector = ImageVector.vectorResource(
+                            if (isBookmarked) R.drawable.ic_icon_bookmark else R.drawable.ic_icon_bookmark_border
+                        ),
                         contentDescription = "Bookmark (b)",
                         tint = if (isBookmarked) PianoAmber else TextSecondary,
                         modifier = Modifier.size(24.dp)

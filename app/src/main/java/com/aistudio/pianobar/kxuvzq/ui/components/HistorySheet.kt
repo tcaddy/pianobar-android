@@ -20,9 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,10 +32,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.model.Track
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
@@ -92,7 +92,7 @@ fun HistorySheet(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.History,
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_icon_history),
                         contentDescription = null,
                         tint = PianoCyan,
                         modifier = Modifier.size(20.dp)
@@ -129,7 +129,7 @@ fun HistorySheet(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
-                            imageVector = Icons.Default.MusicNote,
+                            imageVector = ImageVector.vectorResource(R.drawable.ic_notif_music),
                             contentDescription = null,
                             tint = TextSecondary,
                             modifier = Modifier.size(40.dp)
@@ -188,7 +188,7 @@ fun HistorySheet(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.MusicNote,
+                                        imageVector = ImageVector.vectorResource(R.drawable.ic_notif_music),
                                         contentDescription = null,
                                         tint = PianoCyan,
                                         modifier = Modifier.size(20.dp)
@@ -225,7 +225,7 @@ fun HistorySheet(
 
                                 if (isBanned) {
                                     Icon(
-                                        imageVector = Icons.Default.ThumbDown,
+                                        imageVector = ImageVector.vectorResource(R.drawable.ic_icon_thumb_down),
                                         contentDescription = "Banned",
                                         tint = PianoRed,
                                         modifier = Modifier

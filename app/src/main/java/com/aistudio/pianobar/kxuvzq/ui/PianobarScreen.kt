@@ -28,13 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.filled.Terminal
-import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,12 +51,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.model.Station
 import com.aistudio.pianobar.kxuvzq.model.Track
 import com.aistudio.pianobar.kxuvzq.player.PianobarPlayerManager
@@ -189,7 +186,7 @@ fun PianobarScreen(
                             modifier = Modifier.testTag("toggle_cli_mode_btn")
                         ) {
                             Icon(
-                                imageVector = if (state.isCliMode) Icons.Filled.Terminal else Icons.Outlined.Terminal,
+                                imageVector = ImageVector.vectorResource(R.drawable.ic_icon_terminal),
                                 contentDescription = "CLI Toggle",
                                 modifier = Modifier.size(16.dp)
                             )
@@ -208,7 +205,7 @@ fun PianobarScreen(
                             modifier = Modifier.testTag("open_history_btn")
                         ) {
                             Icon(
-                                imageVector = Icons.Default.History,
+                                imageVector = ImageVector.vectorResource(R.drawable.ic_icon_history),
                                 contentDescription = "History",
                                 tint = TextSecondary
                             )
@@ -285,7 +282,9 @@ fun PianobarScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Icon(
-                                            imageVector = if (station.isQuickMix) Icons.Default.Shuffle else Icons.Default.Radio,
+                                            imageVector = ImageVector.vectorResource(
+                                                if (station.isQuickMix) R.drawable.ic_icon_shuffle else R.drawable.ic_icon_radio
+                                            ),
                                             contentDescription = null,
                                             tint = if (isSelected) PianoCyan else TextSecondary,
                                             modifier = Modifier.size(14.dp)

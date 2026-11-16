@@ -21,13 +21,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Key
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,7 +47,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -61,6 +58,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.player.PianobarPlayerManager
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
@@ -202,7 +200,11 @@ fun SettingsSheet(
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = PianoRed)
                             ) {
-                                Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(14.dp))
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(R.drawable.ic_icon_logout),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp)
+                                )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text("Sign Out", fontSize = 12.sp)
                             }
@@ -286,10 +288,16 @@ fun SettingsSheet(
                         label = { Text("Password or Auth Token") },
                         placeholder = { Text("Enter account password") },
                         leadingIcon = {
-                            Icon(Icons.Default.Key, contentDescription = null, tint = TextSecondary)
+                            Icon(
+                                imageVector = ImageVector.vectorResource(R.drawable.ic_icon_key),
+                                contentDescription = null,
+                                tint = TextSecondary
+                            )
                         },
                         trailingIcon = {
-                            val icon = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                            val icon = ImageVector.vectorResource(
+                                if (passwordVisible) R.drawable.ic_icon_visibility else R.drawable.ic_icon_visibility_off
+                            )
                             val description = if (passwordVisible) "Hide password" else "Show password"
                             IconButton(
                                 onClick = { passwordVisible = !passwordVisible },
@@ -329,7 +337,7 @@ fun SettingsSheet(
                         modifier = Modifier.padding(start = 2.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Security,
+                            imageVector = ImageVector.vectorResource(R.drawable.ic_icon_security),
                             contentDescription = "Hardware Security",
                             tint = PianoGreen,
                             modifier = Modifier.size(14.dp)

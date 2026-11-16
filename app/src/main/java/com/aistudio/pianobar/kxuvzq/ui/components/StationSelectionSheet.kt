@@ -22,9 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,10 +46,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.model.Station
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
@@ -442,7 +443,9 @@ fun StationSelectionSheet(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = if (station.isQuickMix) Icons.Default.Shuffle else Icons.Default.Radio,
+                                    imageVector = ImageVector.vectorResource(
+                                        if (station.isQuickMix) R.drawable.ic_icon_shuffle else R.drawable.ic_icon_radio
+                                    ),
                                     contentDescription = null,
                                     tint = if (isSelected) PianoCyan else TextSecondary,
                                     modifier = Modifier.size(24.dp)
