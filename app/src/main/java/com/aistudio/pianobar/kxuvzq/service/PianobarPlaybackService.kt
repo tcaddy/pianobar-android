@@ -333,7 +333,7 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
         builder.setContentTitle(title)
             .setContentText("$artist • $stationName")
             .setSubText("pianobar • ${track?.audioBitrate ?: "AAC 192k"}")
-            .setSmallIcon(R.drawable.ic_notif_play)
+            .setSmallIcon(R.drawable.ic_notif_music)
             .setLargeIcon(largeArt)
             .setContentIntent(openAppPendingIntent)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
