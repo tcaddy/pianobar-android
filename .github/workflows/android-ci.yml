@@ -1,8 +1,11 @@
 name: Android CI
 
-# Run on every push, every pull request, and on demand from the Actions tab.
+# Run on pushes to main, on every pull request, and on demand from the Actions
+# tab. Restricting pushes to main avoids a duplicate run for every commit on a
+# PR branch (push + pull_request).
 on:
   push:
+    branches: [ main ]
   pull_request:
   workflow_dispatch:
 
