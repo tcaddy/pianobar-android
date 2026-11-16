@@ -19,6 +19,22 @@
       "groupSlug": "android-build-toolchain"
     },
     {
+      "description": "Pin AGP to 9.1.x. Google AI Studio's Play publishing container runs pre-installed Gradle 9.3.1 (ignoring gradle-wrapper.properties, observed via `gradle --version` and AGP 9.5.0 failure 'Minimum supported Gradle version is 9.6.0. Current version is 9.3.1.'). No public AI Studio URL documents this container pin; AGP 9.2+ requires Gradle 9.4+ per https://developer.android.com/build/releases/gradle-plugin",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": [
+        "/^com\\.android\\.application/",
+        "/^com\\.android\\.library/",
+        "/^com\\.android\\.tools\\.build/"
+      ],
+      "allowedVersions": "/^9\\.1\\./"
+    },
+    {
+      "description": "Pin Gradle wrapper to 9.3.x to match Google AI Studio's pre-installed Gradle 9.3.1 build/publish runtime (no public AI Studio URL documents the container version; AGP 9.1's Gradle 9.3.1 requirement is documented at https://developer.android.com/build/releases/gradle-plugin).",
+      "matchManagers": ["gradle-wrapper"],
+      "matchPackageNames": ["gradle"],
+      "allowedVersions": "/^9\\.3\\./"
+    },
+    {
       "description": "Group Jetpack Compose BOM, Compose libraries, and Activity Compose",
       "matchManagers": ["gradle"],
       "matchPackageNames": [
