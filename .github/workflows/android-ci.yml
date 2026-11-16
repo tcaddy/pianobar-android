@@ -1,0 +1,152 @@
+name: Android CI
+
+# Run on every push, every pull request, and on demand from the Actions tab.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# Cancel superseded runs on the same branch/PR to save CI minutes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Unit tests (JVM + Robolectric). No emulator required.
+  # ---------------------------------------------------------------------------
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          # compileSdk is 36.1 (see app/build.gradle.kts), AGP 9.1.1 defaults to
+          # build-tools 36.0.0.
+          packages: "platform-tools platforms;android-36.1 build-tools;36.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # app/build.gradle.kts points the debug signing config at
+      # <rootDir>/debug.keystore, which is intentionally not checked in.
+      - name: Generate debug signing keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore "$GITHUB_WORKSPACE/debug.keystore" \
+            -storetype JKS \
+            -storepass android \
+            -keypass android \
+            -alias androiddebugkey \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Run unit tests
+        run: ./gradlew :app:testDebugUnitTest --stacktrace
+
+      - name: Upload unit test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-test-report
+          path: app/build/reports/tests/testDebugUnitTest/
+          if-no-files-found: ignore
+
+  # ---------------------------------------------------------------------------
+  # Build the debug and release APKs.
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build APKs
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools platforms;android-36.1 build-tools;36.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Generate signing keystores
+        env:
+          # Optional repository secrets. When all three are present the real
+          # release key is used; otherwise a throwaway CI key is generated so
+          # the release APK still builds. The key alias MUST be "upload"
+          # because that is hard-coded in app/build.gradle.kts.
+          SECRET_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          SECRET_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          SECRET_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          # Debug keystore expected at <rootDir>/debug.keystore.
+          keytool -genkeypair -v \
+            -keystore "$GITHUB_WORKSPACE/debug.keystore" \
+            -storetype JKS \
+            -storepass android \
+            -keypass android \
+            -alias androiddebugkey \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+          if [ -n "${SECRET_KEYSTORE_BASE64:-}" ] \
+            && [ -n "${SECRET_STORE_PASSWORD:-}" ] \
+            && [ -n "${SECRET_KEY_PASSWORD:-}" ]; then
+            echo "Using release keystore from repository secrets."
+            echo "$SECRET_KEYSTORE_BASE64" | base64 --decode > "$GITHUB_WORKSPACE/ci-release.keystore"
+            store_password="$SECRET_STORE_PASSWORD"
+            key_password="$SECRET_KEY_PASSWORD"
+          else
+            echo "No release keystore secrets configured; generating an ephemeral CI keystore."
+            store_password="ci-store-password"
+            key_password="ci-key-password"
+            keytool -genkeypair -v \
+              -keystore "$GITHUB_WORKSPACE/ci-release.keystore" \
+              -storetype JKS \
+              -storepass "$store_password" \
+              -keypass "$key_password" \
+              -alias upload \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Pianobar CI,OU=CI,O=CI,L=CI,ST=CI,C=US"
+          fi
+
+          {
+            echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/ci-release.keystore"
+            echo "STORE_PASSWORD=$store_password"
+            echo "KEY_PASSWORD=$key_password"
+          } >> "$GITHUB_ENV"
+
+      - name: Assemble debug and release APKs
+        run: ./gradlew :app:assembleDebug :app:assembleRelease --stacktrace
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v7
+        with:
+          name: apks
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
