@@ -45,6 +45,24 @@
       "groupSlug": "jetpack-compose"
     },
     {
+      "description": "Pin Compose BOM below 2026.08.00. Google AI Studio's build/publishing container only has android-36 and android-36.1 installed in $ANDROID_SDK_ROOT/platforms (no android-37), and Compose BOM 2026.08.00+ requires compileSdk 37.",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": ["androidx.compose:compose-bom"],
+      "allowedVersions": "/^2026\\.0[1-7]\\./"
+    },
+    {
+      "description": "Pin Activity Compose to <= 1.13.x while AI Studio's container lacks android-37 SDK (1.14+ targets compileSdk 37).",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": ["androidx.activity:activity-compose"],
+      "allowedVersions": "/^1\\.(?:[0-9]|1[0-3])\\./"
+    },
+    {
+      "description": "Pin AndroidX Core KTX below 1.19.0 while AI Studio's container only has android-36/36.1 installed (core-ktx 1.19+ requires compileSdk 37).",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": ["/^androidx\\.core:core/"],
+      "allowedVersions": "/^1\\.(?:[0-9]|1[0-8])\\./"
+    },
+    {
       "description": "Group AndroidX Lifecycle libraries together",
       "matchManagers": ["gradle"],
       "matchPackageNames": [
@@ -52,6 +70,14 @@
       ],
       "groupName": "AndroidX Lifecycle",
       "groupSlug": "androidx-lifecycle"
+    },
+    {
+      "description": "Pin AndroidX Lifecycle below 2.11.0 while AI Studio's container only has android-36/36.1 installed (lifecycle 2.11.0+ AAR metadata requires compileSdk 37).",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": [
+        "/^androidx\\.lifecycle:/"
+      ],
+      "allowedVersions": "/^2\\.(?:[0-9]|10)\\./"
     },
     {
       "description": "Group Kotlinx Coroutines libraries together",
@@ -70,6 +96,14 @@
       ],
       "groupName": "OkHttp",
       "groupSlug": "okhttp"
+    },
+    {
+      "description": "Pin OkHttp to 4.x. OkHttp 5.5.0+ (okhttp-android) requires compileSdk 37 (missing in AI Studio's android-36/36.1 container), and coil-compose 2.7.0 is compiled against OkHttp 4.x.",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": [
+        "/^com\\.squareup\\.okhttp3:/"
+      ],
+      "allowedVersions": "/^4\\./"
     },
     {
       "description": "Group Coil artifacts together (covers Coil 2 and Coil 3 modules)",
