@@ -29,6 +29,7 @@ import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.model.PlayerState
 import com.aistudio.pianobar.kxuvzq.model.Track
 import com.aistudio.pianobar.kxuvzq.player.PianobarPlayerManager
+import com.aistudio.pianobar.kxuvzq.widget.PianobarWidgetProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -128,8 +129,14 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
             serviceScope.launch {
                 val loadedBitmap = loadArtwork(track.artworkUrl)
                 currentArtworkBitmap = loadedBitmap
-                updateMediaMetadata(track, state, loadedBitmap)
-                updateNotification(state)
+                val latestState = playerManager.state.value
+                updateMediaMetadata(track, latestState, loadedBitmap)
+                updateNotification(latestState)
+                PianobarWidgetProvider.updateAllWidgets(
+                    this@PianobarPlaybackService,
+                    latestState,
+                    loadedBitmap
+                )
             }
         } else {
             // Keep existing artwork bitmap on metadata update so lockscreen does not drop art

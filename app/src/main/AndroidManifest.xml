@@ -26,6 +26,19 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
+
+        <receiver
+            android:name=".widget.PianobarWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/pianobar_widget_info" />
+        </receiver>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

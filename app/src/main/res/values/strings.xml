@@ -2,4 +2,16 @@
     <string name="app_name">Pianobar</string>
     <string name="notification_channel_name">Pianobar Media Playback</string>
     <string name="notification_channel_desc">Active radio station and playback controls for Pianobar</string>
+    <string name="widget_label">Pianobar Player</string>
+    <string name="widget_description">Now playing info and playback controls matching the Pianobar notification.</string>
+    <string name="widget_default_subtext">pianobar • AAC 192k</string>
+    <string name="widget_default_title">Pianobar</string>
+    <string name="widget_default_subtitle">Pandora Radio Client • QuickMix</string>
+    <string name="widget_subtitle_sign_in">Pandora Radio Client • Tap to sign in</string>
+    <string name="widget_cd_open_app">Open Pianobar</string>
+    <string name="widget_cd_artwork">Album artwork</string>
+    <string name="widget_cd_play">Play</string>
+    <string name="widget_cd_pause">Pause</string>
+    <string name="widget_cd_next">Skip to next track</string>
+    <string name="widget_cd_stop">Stop playback and close notification</string>
 </resources>

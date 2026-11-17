@@ -171,7 +171,11 @@ class PianobarPlayerManager private constructor() {
     }
 
     private fun notifyState() {
-        onStateChanged?.invoke(_state.value)
+        val currentState = _state.value
+        onStateChanged?.invoke(currentState)
+        appContext?.let {
+            com.aistudio.pianobar.kxuvzq.widget.PianobarWidgetProvider.updateIfStateChanged(it, currentState)
+        }
     }
 
     private fun clearExpiredOrInvalidatedQueue(stationId: String): Boolean {
@@ -508,6 +512,7 @@ class PianobarPlayerManager private constructor() {
                         addLog("[i]", "Cached stream expired after pause/network change. Fetching fresh tracks...", LogType.INFO)
                         fetchPlaylistAndPlay(station, autoPlay = true)
                     } else {
+                        appContext?.let { com.aistudio.pianobar.kxuvzq.service.PianobarPlaybackService.start(it) }
                         player.start()
                         _state.update { it.copy(isPlaying = true) }
                         startProgressTracker(currentPlaybackAttemptId, track)
@@ -549,6 +554,7 @@ class PianobarPlayerManager private constructor() {
                     addLog("[i]", "Cached stream expired after pause/network change. Fetching fresh tracks...", LogType.INFO)
                     fetchPlaylistAndPlay(station, autoPlay = true)
                 } else {
+                    appContext?.let { com.aistudio.pianobar.kxuvzq.service.PianobarPlaybackService.start(it) }
                     player.start()
                     _state.update { it.copy(isPlaying = true) }
                     startProgressTracker(currentPlaybackAttemptId, track)
