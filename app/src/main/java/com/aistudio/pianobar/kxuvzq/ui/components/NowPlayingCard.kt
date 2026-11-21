@@ -44,7 +44,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -63,6 +62,7 @@ import com.aistudio.pianobar.kxuvzq.ui.theme.PianoAmber
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoGreen
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoOnAccent
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoPurple
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoRed
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurface
@@ -369,14 +369,14 @@ fun NowPlayingCard(
                         .testTag("play_pause_button"),
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = PianoCyan,
-                        contentColor = Color.Black
+                        contentColor = PianoOnAccent
                     ),
                     shape = CircleShape
                 ) {
                     if (state.isBuffering) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(30.dp),
-                            color = Color.Black,
+                            color = PianoOnAccent,
                             strokeWidth = 3.dp
                         )
                     } else {

@@ -40,7 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -50,12 +49,15 @@ import androidx.compose.ui.unit.sp
 import com.aistudio.pianobar.kxuvzq.model.LogType
 import com.aistudio.pianobar.kxuvzq.model.PianobarLog
 import com.aistudio.pianobar.kxuvzq.model.PlayerState
-import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
-import com.aistudio.pianobar.kxuvzq.ui.theme.PianoGreen
-import com.aistudio.pianobar.kxuvzq.ui.theme.PianoPurple
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalBg
+import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalBorderColor
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalError
+import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalHeader
+import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalInfo
+import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalMuted
+import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalOnAccent
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalPrompt
+import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalSurface
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalText
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalWarn
 import java.util.Locale
@@ -98,8 +100,8 @@ fun CliTerminalView(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
-                .border(1.dp, PianoCyan.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
-            color = Color(0xFF030508)
+                .border(1.dp, TerminalPrompt.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
+            color = TerminalHeader
         ) {
             Column(modifier = Modifier.padding(10.dp)) {
                 Text(
@@ -113,7 +115,7 @@ fun CliTerminalView(
                     fontFamily = FontFamily.Monospace,
                     fontSize = 10.sp,
                     lineHeight = 12.sp,
-                    color = PianoCyan,
+                    color = TerminalPrompt,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -129,7 +131,7 @@ fun CliTerminalView(
                     text = "|> Station: \"$stationName\"",
                     fontFamily = FontFamily.Monospace,
                     fontSize = 12.sp,
-                    color = PianoGreen,
+                    color = TerminalText,
                     fontWeight = FontWeight.SemiBold
                 )
 
@@ -148,7 +150,7 @@ fun CliTerminalView(
                         text = "#   $timeFormatted  [${if (state.isPlaying) "PLAYING" else if (state.isBuffering) "BUFFER" else "PAUSED"}]",
                         fontFamily = FontFamily.Monospace,
                         fontSize = 11.sp,
-                        color = PianoPurple
+                        color = TerminalInfo
                     )
                     Text(
                         text = track?.audioBitrate ?: "AAC 192k",
@@ -187,8 +189,8 @@ fun CliTerminalView(
                     onClick = { onExecuteCommand(key) },
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                     colors = ButtonDefaults.elevatedButtonColors(
-                        containerColor = Color(0xFF131924),
-                        contentColor = PianoCyan
+                        containerColor = TerminalSurface,
+                        contentColor = TerminalPrompt
                     ),
                     shape = RoundedCornerShape(4.dp),
                     modifier = Modifier.testTag("cli_btn_$key")
@@ -210,8 +212,8 @@ fun CliTerminalView(
                 .weight(1f)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(6.dp))
-                .background(Color(0xFF04060A))
-                .border(1.dp, Color(0xFF1C2538), RoundedCornerShape(6.dp))
+                .background(TerminalHeader)
+                .border(1.dp, TerminalBorderColor, RoundedCornerShape(6.dp))
                 .padding(8.dp)
         ) {
             LazyColumn(
@@ -248,14 +250,14 @@ fun CliTerminalView(
                         text = "Type pianobar command (p, n, +, -, s, e, help)...",
                         fontFamily = FontFamily.Monospace,
                         fontSize = 12.sp,
-                        color = Color(0xFF4A5568)
+                        color = TerminalMuted
                     )
                 },
                 leadingIcon = {
                     Text(
                         text = ">_",
                         fontFamily = FontFamily.Monospace,
-                        color = PianoCyan,
+                        color = TerminalPrompt,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
@@ -267,10 +269,10 @@ fun CliTerminalView(
                     color = TerminalText
                 ),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PianoCyan,
-                    unfocusedBorderColor = Color(0xFF26334D),
-                    focusedContainerColor = Color(0xFF080C14),
-                    unfocusedContainerColor = Color(0xFF080C14)
+                    focusedBorderColor = TerminalPrompt,
+                    unfocusedBorderColor = TerminalBorderColor,
+                    focusedContainerColor = TerminalSurface,
+                    unfocusedContainerColor = TerminalSurface
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions(
@@ -294,13 +296,13 @@ fun CliTerminalView(
                 },
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(PianoCyan)
+                    .background(TerminalPrompt)
                     .testTag("cli_submit_button")
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
                     contentDescription = "Send Command",
-                    tint = Color.Black
+                    tint = TerminalOnAccent
                 )
             }
         }
@@ -310,13 +312,13 @@ fun CliTerminalView(
 @Composable
 private fun LogLineItem(log: PianobarLog) {
     val color = when (log.type) {
-        LogType.INFO -> Color(0xFF8899A6)
+        LogType.INFO -> TerminalInfo
         LogType.PLAYING -> TerminalText
-        LogType.LOVE -> PianoCyan
+        LogType.LOVE -> TerminalPrompt
         LogType.BAN -> TerminalError
         LogType.WARNING -> TerminalWarn
         LogType.PROMPT -> TerminalPrompt
-        LogType.COMMAND -> PianoPurple
+        LogType.COMMAND -> TerminalInfo
     }
 
     Row(
@@ -328,7 +330,7 @@ private fun LogLineItem(log: PianobarLog) {
             text = "${log.timeFormatted} ",
             fontFamily = FontFamily.Monospace,
             fontSize = 11.sp,
-            color = Color(0xFF4A5568)
+            color = TerminalMuted
         )
         Text(
             text = "${log.prefix} ",

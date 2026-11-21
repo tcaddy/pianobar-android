@@ -29,7 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +44,7 @@ import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurface
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceBorder
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceElevated
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalBg
+import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalPrimary
 import com.aistudio.pianobar.kxuvzq.ui.theme.TextPrimary
 import com.aistudio.pianobar.kxuvzq.ui.theme.TextSecondary
 
@@ -170,7 +170,7 @@ fun ExplainSongDialog(
                 ) {
                     Text(
                         text = track.musicGenomeExplanation,
-                        color = TextPrimary,
+                        color = TerminalPrimary,
                         fontSize = 13.sp,
                         lineHeight = 20.sp,
                         fontFamily = FontFamily.SansSerif,

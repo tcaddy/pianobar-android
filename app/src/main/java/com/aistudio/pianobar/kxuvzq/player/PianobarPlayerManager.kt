@@ -80,12 +80,14 @@ class PianobarPlayerManager private constructor() {
             val savedPass = prefs.password
             val isUserLoggedIn = prefs.isLoggedIn && savedUser.isNotBlank()
             val isHq = prefs.isHighQualityAudio
+            val themeId = prefs.themeId
 
             _state.update {
                 it.copy(
                     userEmail = savedUser,
                     isUserLoggedIn = isUserLoggedIn,
-                    isHighQualityAudio = isHq
+                    isHighQualityAudio = isHq,
+                    themeId = themeId
                 )
             }
 
@@ -900,6 +902,13 @@ class PianobarPlayerManager private constructor() {
     }
 
     fun getPreferences(): com.aistudio.pianobar.kxuvzq.data.PianobarPreferences? = preferences
+
+    /** Applies a palette id immediately and remembers it for the next launch. */
+    fun setTheme(themeId: String) {
+        preferences?.themeId = themeId
+        _state.update { it.copy(themeId = themeId) }
+        notifyState()
+    }
 
     fun executeTerminalCommand(cmd: String) {
         val trimmed = cmd.trim().lowercase()

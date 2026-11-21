@@ -96,6 +96,7 @@ data class PlayerState(
     val userEmail: String = "",
     val isUserLoggedIn: Boolean = false,
     val isHighQualityAudio: Boolean = true,
+    val themeId: String = "midnight",
     val sleepTimerRemainingSeconds: Long = 0L,
     val isSleepTimerActive: Boolean = false,
     val error: String? = null

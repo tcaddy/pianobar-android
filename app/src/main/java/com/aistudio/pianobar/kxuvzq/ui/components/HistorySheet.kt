@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
@@ -42,6 +41,7 @@ import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.model.Track
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDragHandle
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoRed
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurface
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceBorder
@@ -71,7 +71,7 @@ fun HistorySheet(
                     .width(44.dp)
                     .height(4.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF334155))
+                    .background(PianoDragHandle)
             )
         }
     ) {

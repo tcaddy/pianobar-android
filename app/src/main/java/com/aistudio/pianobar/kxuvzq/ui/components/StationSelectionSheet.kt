@@ -45,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
@@ -56,7 +55,11 @@ import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.model.Station
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDragHandle
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoGreen
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoMutedSurface
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoOnAccent
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoOnAccentAlt
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoPurple
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoRed
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurface
@@ -112,7 +115,7 @@ fun StationSelectionSheet(
                     .width(44.dp)
                     .height(4.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF334155))
+                    .background(PianoDragHandle)
             )
         }
     ) {
@@ -156,7 +159,7 @@ fun StationSelectionSheet(
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (showCreateForm) PianoSurfaceElevated else PianoCyan,
-                            contentColor = if (showCreateForm) TextPrimary else Color.Black
+                            contentColor = if (showCreateForm) TextPrimary else PianoOnAccent
                         ),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.testTag("add_station_button")
@@ -223,7 +226,7 @@ fun StationSelectionSheet(
                                 showImportDialog = false
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = PianoPurple, contentColor = Color.White),
+                            colors = ButtonDefaults.buttonColors(containerColor = PianoPurple, contentColor = PianoOnAccentAlt),
                             shape = RoundedCornerShape(10.dp)
                         ) {
                             Text("Add Stations to Tuner", fontWeight = FontWeight.Bold)
@@ -319,7 +322,7 @@ fun StationSelectionSheet(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .testTag("create_station_submit"),
-                            colors = ButtonDefaults.buttonColors(containerColor = PianoCyan, contentColor = Color.Black),
+                            colors = ButtonDefaults.buttonColors(containerColor = PianoCyan, contentColor = PianoOnAccent),
                             shape = RoundedCornerShape(10.dp)
                         ) {
                             Text("Initialize Station Stream", fontWeight = FontWeight.Bold)
@@ -438,7 +441,7 @@ fun StationSelectionSheet(
                                     .size(44.dp)
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(
-                                        if (isSelected) PianoCyan.copy(alpha = 0.2f) else Color(0xFF1E293B)
+                                        if (isSelected) PianoCyan.copy(alpha = 0.2f) else PianoMutedSurface
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {

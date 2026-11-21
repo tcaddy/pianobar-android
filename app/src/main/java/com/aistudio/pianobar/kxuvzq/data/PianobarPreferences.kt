@@ -15,6 +15,8 @@ class PianobarPreferences(context: Context) {
         private const val KEY_HIGH_QUALITY = "key_high_quality"
         private const val KEY_BACKGROUND_STREAMING = "key_background_streaming"
         private const val KEY_LAST_STATION_ID = "key_last_station_id"
+        private const val KEY_THEME_ID = "key_theme_id"
+        private const val DEFAULT_THEME_ID = "midnight"
     }
 
     var lastStationId: String
@@ -53,6 +55,11 @@ class PianobarPreferences(context: Context) {
     var isBackgroundStreaming: Boolean
         get() = prefs.getBoolean(KEY_BACKGROUND_STREAMING, true)
         set(value) = prefs.edit().putBoolean(KEY_BACKGROUND_STREAMING, value).apply()
+
+    /** Stable id from PianobarThemes; survives sign-out and app restarts. */
+    var themeId: String
+        get() = prefs.getString(KEY_THEME_ID, DEFAULT_THEME_ID) ?: DEFAULT_THEME_ID
+        set(value) = prefs.edit().putString(KEY_THEME_ID, value).apply()
 
     /**
      * Stores credentials with the secret password/token encrypted via hardware StrongBox/TEE.

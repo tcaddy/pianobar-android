@@ -16,7 +16,7 @@ Pianobar brings the minimalist, hacker-friendly Pandora radio experience to mode
   - Full ASCII terminal interface matching original pianobar console prompts (`[i]`, `[#]`, `[+]`, `[-]`, `[?]`, `[>]`, `[z]`).
   - Single-character command shortcuts (`p` play/pause, `n` skip, `+` love, `-` ban, `t` snooze, `b` bookmark, `e` explain, `s` stations, `h` history, `sleep` sleep timer, `q` quit).
 - **Modern Jetpack Compose GUI**:
-  - Dark terminal aesthetic (`#0D1117`, slate cards, phosphor green accents, subtle cyan meters).
+  - Terminal aesthetic with five selectable palettes: Midnight, Amber CRT, Ice, Solarized, and Newsprint (light). Choose one under Settings → Appearance; the choice is remembered across launches.
   - Real-time animated audio visualizer bars responding to playback state.
   - Searchable, alphabetized station browser.
   - Last station memory: automatically restores your last played station on startup.

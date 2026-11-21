@@ -50,7 +50,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -73,6 +72,7 @@ import com.aistudio.pianobar.kxuvzq.ui.components.StationSelectionSheet
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoGreen
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoOnAccent
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoPurple
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurface
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceBorder
@@ -179,7 +179,7 @@ fun PianobarScreen(
                             onClick = { playerManager.toggleCliMode() },
                             colors = ButtonDefaults.elevatedButtonColors(
                                 containerColor = if (state.isCliMode) PianoCyan else PianoSurfaceElevated,
-                                contentColor = if (state.isCliMode) Color.Black else PianoCyan
+                                contentColor = if (state.isCliMode) PianoOnAccent else PianoCyan
                             ),
                             shape = RoundedCornerShape(12.dp),
                             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
