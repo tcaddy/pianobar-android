@@ -5,11 +5,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import com.aistudio.pianobar.kxuvzq.model.PlayerState
+import com.aistudio.pianobar.kxuvzq.model.Track
 import com.aistudio.pianobar.kxuvzq.ui.components.NowPlayingCard
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -69,5 +74,68 @@ class AiSlopThemeTest {
         }
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithTag("ai_slop_bento_strip").assertDoesNotExist()
+    }
+
+    @Test
+    fun nowPlayingCard_tiredButtonInvokesCallbackWhenTrackPresent() {
+        var tiredClicked = 0
+        val track = Track(
+            id = "t-99",
+            title = "Nocturne",
+            artist = "Chopin",
+            album = "Nocturnes",
+            artworkUrl = "",
+            streamUrl = "",
+            stationId = "s-1"
+        )
+        composeTestRule.setContent {
+            MyApplicationTheme(themeId = "midnight") {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    NowPlayingCard(
+                        state = PlayerState(currentTrack = track, isPlaying = true, themeId = "midnight"),
+                        onTogglePlayPause = {},
+                        onSkipNext = {},
+                        onLoveTrack = {},
+                        onBanTrack = {},
+                        onBookmarkTrack = {},
+                        onExplainTrack = {},
+                        onSeek = {},
+                        onOpenStationSelect = {},
+                        onTiredTrack = { tiredClicked++ }
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag("tired_button")
+            .performScrollTo()
+            .assertIsEnabled()
+            .performClick()
+        assertEquals(1, tiredClicked)
+    }
+
+    @Test
+    fun nowPlayingCard_tiredButtonDisabledWithoutTrack() {
+        composeTestRule.setContent {
+            MyApplicationTheme(themeId = "midnight") {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    NowPlayingCard(
+                        state = PlayerState(currentTrack = null, isPlaying = false, themeId = "midnight"),
+                        onTogglePlayPause = {},
+                        onSkipNext = {},
+                        onLoveTrack = {},
+                        onBanTrack = {},
+                        onBookmarkTrack = {},
+                        onExplainTrack = {},
+                        onSeek = {},
+                        onOpenStationSelect = {}
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag("tired_button")
+            .performScrollTo()
+            .assertIsNotEnabled()
     }
 }

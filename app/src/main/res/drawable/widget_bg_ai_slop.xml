@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Gradient border frame: Violet -> Indigo -> Cyan -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="315"
+                android:centerColor="#FF818CF8"
+                android:endColor="#FF22D3EE"
+                android:startColor="#FFC084FC"
+                android:type="linear" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+    <!-- Inner slate-950 glass surface with subtle ambient purple/cyan sheen -->
+    <item
+        android:bottom="1.5dp"
+        android:left="1.5dp"
+        android:right="1.5dp"
+        android:top="1.5dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="315"
+                android:centerColor="#FF0B1120"
+                android:endColor="#FF0D1D2C"
+                android:startColor="#FF1A1033"
+                android:type="linear" />
+            <corners android:radius="18.5dp" />
+        </shape>
+    </item>
+</layer-list>

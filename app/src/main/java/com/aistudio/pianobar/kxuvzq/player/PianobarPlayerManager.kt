@@ -30,7 +30,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class PianobarPlayerManager private constructor() {
+class PianobarPlayerManager internal constructor(
+    private val pandoraApiClient: com.aistudio.pianobar.kxuvzq.pandora.PandoraApiClient =
+        com.aistudio.pianobar.kxuvzq.pandora.PandoraApiClient()
+) {
 
     private val scope = CoroutineScope(Dispatchers.Main + Job())
     private var mediaPlayer: MediaPlayer? = null
@@ -41,7 +44,6 @@ class PianobarPlayerManager private constructor() {
     private var sleepTimerJob: Job? = null
     private var appContext: Context? = null
     private var preferences: com.aistudio.pianobar.kxuvzq.data.PianobarPreferences? = null
-    private val pandoraApiClient = com.aistudio.pianobar.kxuvzq.pandora.PandoraApiClient()
 
     private val _stations = MutableStateFlow<List<Station>>(StationRepository.defaultStations)
     val stations: StateFlow<List<Station>> = _stations.asStateFlow()
@@ -216,7 +218,9 @@ class PianobarPlayerManager private constructor() {
             it.copy(
                 currentStation = station,
                 currentTrack = null,
-                isBuffering = true
+                isBuffering = true,
+                isExplaining = false,
+                explainError = null
             )
         }
         notifyState()
@@ -229,7 +233,9 @@ class PianobarPlayerManager private constructor() {
                     currentTrack = firstTrack,
                     isBuffering = false,
                     currentPositionMs = 0L,
-                    durationMs = firstTrack.durationMs
+                    durationMs = firstTrack.durationMs,
+                    isExplaining = false,
+                    explainError = null
                 )
             }
             notifyState()
@@ -325,7 +331,9 @@ class PianobarPlayerManager private constructor() {
                 isBuffering = true,
                 isPlaying = false,
                 currentPositionMs = 0L,
-                durationMs = track.durationMs
+                durationMs = track.durationMs,
+                isExplaining = false,
+                explainError = null
             )
         }
         notifyState()
@@ -675,6 +683,7 @@ class PianobarPlayerManager private constructor() {
     fun tiredOfTrack() {
         val track = _state.value.currentTrack ?: return
         addLog("[t]", "Tired of song \"${track.title}\". Snoozing from playlist for 30 days.", LogType.COMMAND)
+        scope.launch { pandoraApiClient.sleepSong(track.id) }
         skipNext()
     }
 
@@ -694,33 +703,62 @@ class PianobarPlayerManager private constructor() {
     fun requestExplanation(onComplete: ((String) -> Unit)? = null) {
         val track = _state.value.currentTrack
         if (track == null) {
+            _state.update { it.copy(isExplaining = false, explainError = "No track currently playing.") }
             addLog("[!]", "No track playing to explain.", LogType.WARNING)
+            notifyState()
             onComplete?.invoke("No track currently playing.")
             return
         }
 
+        _state.update { it.copy(isExplaining = true, explainError = null) }
         addLog("[i]", "Receiving explanation for \"${track.title}\" from Music Genome...", LogType.INFO)
-        scope.launch {
-            val liveExplanation = pandoraApiClient.explainTrack(track.id)
-            val explanation = if (!liveExplanation.isNullOrBlank()) {
-                liveExplanation
-            } else if (track.musicGenomeExplanation.isNotBlank()) {
-                track.musicGenomeExplanation
-            } else {
-                "No explanation provided by Pandora for this track."
-            }
+        notifyState()
 
-            // Update current track explanation in player state
-            _state.update { current ->
-                if (current.currentTrack?.id == track.id) {
-                    current.copy(currentTrack = track.copy(musicGenomeExplanation = explanation))
+        scope.launch {
+            var callbackMessage = ""
+            try {
+                val liveExplanation = pandoraApiClient.explainTrack(track.id)
+                if (!liveExplanation.isNullOrBlank()) {
+                    _state.update { current ->
+                        val updatedTrack = if (current.currentTrack?.id == track.id) {
+                            current.currentTrack.copy(musicGenomeExplanation = liveExplanation)
+                        } else {
+                            current.currentTrack
+                        }
+                        val updatedHistory = current.history.map { hist ->
+                            if (hist.id == track.id) hist.copy(musicGenomeExplanation = liveExplanation) else hist
+                        }
+                        current.copy(
+                            currentTrack = updatedTrack,
+                            history = updatedHistory,
+                            isExplaining = false,
+                            explainError = null
+                        )
+                    }
+                    addLog("[e]", liveExplanation, LogType.INFO)
+                    callbackMessage = liveExplanation
+                } else if (track.musicGenomeExplanation.isNotBlank()) {
+                    _state.update { it.copy(isExplaining = false, explainError = null) }
+                    addLog("[e]", track.musicGenomeExplanation, LogType.INFO)
+                    callbackMessage = track.musicGenomeExplanation
                 } else {
-                    current
+                    val failureMsg = "Unable to retrieve Music Genome explanation from Pandora."
+                    _state.update { it.copy(isExplaining = false, explainError = failureMsg) }
+                    addLog("[!]", failureMsg, LogType.WARNING)
+                    callbackMessage = failureMsg
                 }
+            } catch (e: Exception) {
+                val failureMsg = "Unable to retrieve Music Genome explanation: ${e.message ?: "Network error"}"
+                _state.update { it.copy(isExplaining = false, explainError = failureMsg) }
+                addLog("[!]", failureMsg, LogType.WARNING)
+                callbackMessage = failureMsg
+            } finally {
+                if (_state.value.isExplaining) {
+                    _state.update { it.copy(isExplaining = false) }
+                }
+                notifyState()
+                onComplete?.invoke(callbackMessage)
             }
-            addLog("[e]", explanation, LogType.INFO)
-            notifyState()
-            onComplete?.invoke(explanation)
         }
     }
 
@@ -894,6 +932,8 @@ class PianobarPlayerManager private constructor() {
                 currentTrack = null,
                 isPlaying = false,
                 isBuffering = false,
+                isExplaining = false,
+                explainError = null,
                 error = null
             )
         }
@@ -1100,6 +1140,10 @@ class PianobarPlayerManager private constructor() {
     companion object {
         const val STREAM_TIMEOUT_MS = 5_000L
 
+        internal fun createForTesting(
+            apiClient: com.aistudio.pianobar.kxuvzq.pandora.PandoraApiClient
+        ): PianobarPlayerManager = PianobarPlayerManager(apiClient)
+
         @Volatile
         private var instance: PianobarPlayerManager? = null
 
@@ -1108,5 +1152,9 @@ class PianobarPlayerManager private constructor() {
                 instance ?: PianobarPlayerManager().also { instance = it }
             }
         }
+    }
+
+    internal fun setStateForTesting(transform: (PlayerState) -> PlayerState) {
+        _state.update(transform)
     }
 }

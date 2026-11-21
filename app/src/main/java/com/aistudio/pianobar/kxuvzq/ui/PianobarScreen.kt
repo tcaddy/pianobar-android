@@ -400,6 +400,17 @@ fun PianobarScreen(
                             },
                             onOpenStationSelect = {
                                 showStationSheet = true
+                            },
+                            onTiredTrack = {
+                                val snoozedTitle = state.currentTrack?.title
+                                playerManager.tiredOfTrack()
+                                if (!snoozedTitle.isNullOrBlank()) {
+                                    Toast.makeText(
+                                        context,
+                                        "Snoozed \"$snoozedTitle\" for 30 days",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                         )
 
@@ -475,6 +486,9 @@ fun PianobarScreen(
         ExplainSongDialog(
             track = state.currentTrack,
             stationName = state.currentStation?.name ?: "QuickMix",
+            isLoading = state.isExplaining,
+            errorMessage = state.explainError,
+            onRetry = { playerManager.requestExplanation() },
             onDismiss = { showExplainDialog = false }
         )
     }

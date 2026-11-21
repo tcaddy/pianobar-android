@@ -31,8 +31,8 @@ sealed class PandoraAuthResult {
  * - user.getStationList: encrypted with userAuthToken and syncTime, method=user.getStationList&auth_token=...&partner_id=...&user_id=...
  * - station.getPlaylist: encrypted with userAuthToken, stationToken, syncTime, method=station.getPlaylist&auth_token=...&partner_id=...&user_id=...
  */
-class PandoraApiClient {
-
+class PandoraApiClient(
+    private val baseEndpoint: String = "https://tuner.pandora.com/services/json/",
     private val httpClient: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(6, TimeUnit.SECONDS)
         .readTimeout(8, TimeUnit.SECONDS)
@@ -40,8 +40,8 @@ class PandoraApiClient {
         .callTimeout(10, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
         .build()
+) {
 
-    private val baseEndpoint = "https://tuner.pandora.com/services/json/"
     private val textPlainMedia = "text/plain; charset=utf-8".toMediaType()
 
     private var partnerId: String? = null
@@ -418,7 +418,7 @@ class PandoraApiClient {
                         durationMs = songDuration,
                         streamUrl = streamUrl,
                         stationId = stationTokenOrId,
-                        musicGenomeExplanation = "Live stream served by Pandora Music Genome for station '$stationTokenOrId'.",
+                        musicGenomeExplanation = "",
                         audioBitrate = audioBitrate,
                         year = item.optString("year", ""),
                         fetchedAtMs = batchFetchedAtMs
@@ -436,66 +436,100 @@ class PandoraApiClient {
      * Returns: "We're playing this track because it features trait1, trait2 and trait3."
      */
     suspend fun explainTrack(trackToken: String): String? = withContext(Dispatchers.IO) {
-        val uToken = userAuthToken ?: return@withContext null
-        val pId = partnerId ?: return@withContext null
-        val uId = userId ?: ""
-
-        try {
-            val payload = JSONObject().apply {
-                put("userAuthToken", uToken)
-                put("trackToken", trackToken)
-                put("syncTime", getCurrentSyncTime())
-            }.toString()
-
-            val encryptedPayload = PandoraBlowfishCrypto.encrypt(payload)
-            val explainUrl = "$baseEndpoint?method=track.explainTrack&auth_token=${URLEncoder.encode(uToken, "UTF-8")}&partner_id=$pId&user_id=${URLEncoder.encode(uId, "UTF-8")}"
-
-            val req = Request.Builder()
-                .url(explainUrl)
-                .post(encryptedPayload.toRequestBody(textPlainMedia))
-                .header("User-Agent", "pianobar-2024.12.21")
-                .build()
-
-            val response = httpClient.newCall(req).execute()
-            val respBody = response.body?.string() ?: ""
-            val json = JSONObject(respBody)
-
-            if (json.optString("stat") != "ok") {
-                Log.w("PandoraApiClient", "track.explainTrack failed: $respBody")
+        if (trackToken.isBlank()) return@withContext null
+        if (userAuthToken == null || partnerId == null) {
+            if (!reauthenticateIfNeeded()) {
                 return@withContext null
             }
+        }
 
-            val resultObj = json.getJSONObject("result")
-            val explanationsArray = resultObj.optJSONArray("explanations") ?: return@withContext null
-            if (explanationsArray.length() == 0) return@withContext null
+        try {
+            val (result, errCode) = explainTrackInternal(trackToken)
+            if (result != null) return@withContext result
 
-            val traits = mutableListOf<String>()
-            for (i in 0 until explanationsArray.length()) {
-                val expItem = explanationsArray.getJSONObject(i)
-                val trait = expItem.optString("focusTraitName", "")
-                if (trait.isNotBlank()) {
-                    traits.add(trait)
+            if (errCode == 1003 || errCode == 1001 || errCode == 1000) {
+                Log.i("PandoraApiClient", "Session expired during explainTrack (code $errCode). Re-authenticating...")
+                if (reauthenticateIfNeeded()) {
+                    return@withContext explainTrackInternal(trackToken).first
                 }
             }
-
-            if (traits.isEmpty()) return@withContext null
-
-            // Format exactly like libpiano response.c:
-            // "We're playing this track because it features trait1, trait2 and trait3."
-            val sb = StringBuilder("We're playing this track because it features ")
-            for (i in traits.indices) {
-                sb.append(traits[i])
-                when {
-                    i < traits.size - 2 -> sb.append(", ")
-                    i == traits.size - 2 -> sb.append(" and ")
-                    else -> sb.append(".")
-                }
-            }
-            sb.toString()
+            null
         } catch (e: Exception) {
-            Log.e("PandoraApiClient", "Error explaining track", e)
+            Log.e("PandoraApiClient", "Error explaining track: ${e.message}. Resetting connections...", e)
+            resetNetworkConnections()
+            try {
+                if (reauthenticateIfNeeded()) {
+                    return@withContext explainTrackInternal(trackToken).first
+                }
+            } catch (retryEx: Exception) {
+                Log.e("PandoraApiClient", "Retry explainTrack failed: ${retryEx.message}")
+            }
             null
         }
+    }
+
+    private fun explainTrackInternal(trackToken: String): Pair<String?, Int> {
+        val uToken = userAuthToken ?: return null to 0
+        val pId = partnerId ?: return null to 0
+        val uId = userId ?: ""
+
+        val payload = JSONObject().apply {
+            put("userAuthToken", uToken)
+            put("trackToken", trackToken)
+            put("syncTime", getCurrentSyncTime())
+        }.toString()
+
+        val encryptedPayload = PandoraBlowfishCrypto.encrypt(payload)
+        val explainUrl = "$baseEndpoint?method=track.explainTrack&auth_token=${URLEncoder.encode(uToken, "UTF-8")}&partner_id=$pId&user_id=${URLEncoder.encode(uId, "UTF-8")}"
+
+        val req = Request.Builder()
+            .url(explainUrl)
+            .post(encryptedPayload.toRequestBody(textPlainMedia))
+            .header("User-Agent", "pianobar-2024.12.21")
+            .build()
+
+        val (isSuccessful, httpCode, respBody) = httpClient.newCall(req).execute().use { response ->
+            Triple(response.isSuccessful, response.code, response.body?.string() ?: "")
+        }
+        if (!isSuccessful || respBody.isBlank()) {
+            Log.w("PandoraApiClient", "track.explainTrack HTTP $httpCode failed")
+            return null to 0
+        }
+
+        val json = JSONObject(respBody)
+        if (json.optString("stat") != "ok") {
+            val errCode = json.optInt("code", 0)
+            Log.w("PandoraApiClient", "track.explainTrack failed: $respBody")
+            return null to errCode
+        }
+
+        val resultObj = json.optJSONObject("result") ?: return null to 0
+        val explanationsArray = resultObj.optJSONArray("explanations") ?: return null to 0
+        if (explanationsArray.length() == 0) return null to 0
+
+        val traits = mutableListOf<String>()
+        for (i in 0 until explanationsArray.length()) {
+            val expItem = explanationsArray.optJSONObject(i) ?: continue
+            val trait = expItem.optString("focusTraitName", "").trim()
+            if (trait.isNotBlank()) {
+                traits.add(trait)
+            }
+        }
+
+        if (traits.isEmpty()) return null to 0
+
+        // Format identically to libpiano response.c:
+        // "We're playing this track because it features trait1, trait2 and trait3."
+        val sb = StringBuilder("We're playing this track because it features ")
+        for (i in traits.indices) {
+            sb.append(traits[i])
+            when {
+                i < traits.size - 2 -> sb.append(", ")
+                i == traits.size - 2 -> sb.append(" and ")
+                else -> sb.append(".")
+            }
+        }
+        return sb.toString() to 0
     }
 
     suspend fun addFeedback(stationToken: String, trackToken: String, isPositive: Boolean): Boolean = withContext(Dispatchers.IO) {
@@ -558,6 +592,37 @@ class PandoraApiClient {
             json.optString("stat") == "ok"
         } catch (e: Exception) {
             Log.e("PandoraApiClient", "Error adding bookmark", e)
+            false
+        }
+    }
+
+    suspend fun sleepSong(trackToken: String): Boolean = withContext(Dispatchers.IO) {
+        val uToken = userAuthToken ?: return@withContext false
+        val pId = partnerId ?: return@withContext false
+        val uId = userId ?: ""
+
+        try {
+            val payload = JSONObject().apply {
+                put("userAuthToken", uToken)
+                put("trackToken", trackToken)
+                put("syncTime", getCurrentSyncTime())
+            }.toString()
+
+            val encryptedPayload = PandoraBlowfishCrypto.encrypt(payload)
+            val sleepUrl = "$baseEndpoint?method=user.sleepSong&auth_token=${URLEncoder.encode(uToken, "UTF-8")}&partner_id=$pId&user_id=${URLEncoder.encode(uId, "UTF-8")}"
+
+            val req = Request.Builder()
+                .url(sleepUrl)
+                .post(encryptedPayload.toRequestBody(textPlainMedia))
+                .header("User-Agent", "pianobar-2024.12.21")
+                .build()
+
+            val response = httpClient.newCall(req).execute()
+            val respBody = response.body?.string() ?: ""
+            val json = JSONObject(respBody)
+            json.optString("stat") == "ok"
+        } catch (e: Exception) {
+            Log.e("PandoraApiClient", "Error sleeping song", e)
             false
         }
     }

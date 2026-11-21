@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -89,6 +90,7 @@ fun NowPlayingCard(
     onExplainTrack: () -> Unit,
     onSeek: (Long) -> Unit,
     onOpenStationSelect: () -> Unit,
+    onTiredTrack: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val track = state.currentTrack
@@ -216,10 +218,11 @@ fun NowPlayingCard(
                     .background(PianoSurfaceElevated),
                 contentAlignment = Alignment.Center
             ) {
-                if (!track?.artworkUrl.isNullOrBlank()) {
+                val artworkUrl = track?.artworkUrl
+                if (!artworkUrl.isNullOrBlank()) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(track?.artworkUrl)
+                            .data(artworkUrl)
                             .crossfade(true)
                             .build(),
                         contentDescription = "Album Artwork",
@@ -504,19 +507,100 @@ fun NowPlayingCard(
                         modifier = Modifier.size(24.dp)
                     )
                 }
+            }
 
-                // Explain (e) Music Genome Button
-                IconButton(
-                    onClick = onExplainTrack,
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Explain (e) Music Genome Action
+            Surface(
+                onClick = onExplainTrack,
+                enabled = track != null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .testTag("explain_song_button"),
+                shape = RoundedCornerShape(12.dp),
+                color = if (isSlop) PianoSurfaceElevated.copy(alpha = 0.72f) else PianoSurfaceElevated,
+                border = if (isSlop && track != null) {
+                    androidx.compose.foundation.BorderStroke(1.dp, AiSlopGradients.borderBrush)
+                } else {
+                    androidx.compose.foundation.BorderStroke(1.dp, PianoSurfaceBorder)
+                }
+            ) {
+                Row(
                     modifier = Modifier
-                        .size(48.dp)
-                        .testTag("explain_song_button")
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = "Why is this playing? (e)",
-                        tint = TextSecondary,
-                        modifier = Modifier.size(24.dp)
+                        tint = if (track != null) PianoCyan else TextSecondary.copy(alpha = 0.5f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Why is this playing?",
+                        color = if (track != null) TextPrimary else TextSecondary.copy(alpha = 0.5f),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "(e)",
+                        color = if (track != null) TextSecondary else TextSecondary.copy(alpha = 0.4f),
+                        fontSize = 11.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Secondary Snooze / Tired of Song (t) Action
+            Surface(
+                onClick = onTiredTrack,
+                enabled = track != null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .testTag("tired_button"),
+                shape = RoundedCornerShape(12.dp),
+                color = if (isSlop) PianoSurfaceElevated.copy(alpha = 0.72f) else PianoSurfaceElevated,
+                border = if (isSlop && track != null) {
+                    androidx.compose.foundation.BorderStroke(1.dp, AiSlopGradients.borderBrush)
+                } else {
+                    androidx.compose.foundation.BorderStroke(1.dp, PianoSurfaceBorder)
+                }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_icon_snooze),
+                        contentDescription = null,
+                        tint = if (track != null) PianoAmber else TextSecondary.copy(alpha = 0.5f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "I'm tired of this song",
+                        color = if (track != null) TextPrimary else TextSecondary.copy(alpha = 0.5f),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "(30d)",
+                        color = if (track != null) TextSecondary else TextSecondary.copy(alpha = 0.4f),
+                        fontSize = 11.sp,
+                        fontFamily = FontFamily.Monospace
                     )
                 }
             }

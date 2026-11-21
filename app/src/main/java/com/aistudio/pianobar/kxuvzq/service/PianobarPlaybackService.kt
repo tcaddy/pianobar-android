@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Icon
 import android.media.AudioAttributes
@@ -21,6 +20,7 @@ import android.media.session.PlaybackState
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.compose.ui.graphics.toArgb
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
@@ -29,6 +29,9 @@ import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.model.PlayerState
 import com.aistudio.pianobar.kxuvzq.model.Track
 import com.aistudio.pianobar.kxuvzq.player.PianobarPlayerManager
+import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopPalette
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianobarArtworkRenderer
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianobarThemes
 import com.aistudio.pianobar.kxuvzq.widget.PianobarWidgetProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,8 +46,10 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
     private var audioFocusRequest: AudioFocusRequest? = null
     private var mediaSession: MediaSession? = null
     private val playerManager = PianobarPlayerManager.getInstance()
+    private var rawArtworkBitmap: Bitmap? = null
     private var currentArtworkBitmap: Bitmap? = null
     private var currentArtworkUrl: String? = null
+    private var currentThemeId: String? = null
 
     companion object {
         const val CHANNEL_ID = "pianobar_playback_channel"
@@ -121,30 +126,55 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
     }
 
     private fun syncArtworkAndMetadata(state: PlayerState) {
-        val track = state.currentTrack ?: return
+        val track = state.currentTrack
+        val trackUrl = track?.artworkUrl
+        val palette = PianobarThemes.fromId(state.themeId)
 
-        // If track changed, immediately load artwork asynchronously
-        if (track.artworkUrl != currentArtworkUrl) {
-            currentArtworkUrl = track.artworkUrl
+        // If track artwork URL changed, fetch raw bitmap asynchronously and apply current theme
+        if (trackUrl != currentArtworkUrl) {
+            currentArtworkUrl = trackUrl
+            currentThemeId = palette.id
             serviceScope.launch {
-                val loadedBitmap = loadArtwork(track.artworkUrl)
-                currentArtworkBitmap = loadedBitmap
+                val loadedRaw = if (!trackUrl.isNullOrBlank()) loadRawArtwork(trackUrl) else null
+                rawArtworkBitmap = loadedRaw
                 val latestState = playerManager.state.value
-                updateMediaMetadata(track, latestState, loadedBitmap)
+                val latestPalette = PianobarThemes.fromId(latestState.themeId)
+                val themedArt = PianobarArtworkRenderer.renderThemedArtwork(
+                    context = this@PianobarPlaybackService,
+                    rawArtwork = loadedRaw,
+                    palette = latestPalette,
+                    targetPx = 320,
+                    cornerRadiusRatio = 0.08f
+                )
+                currentArtworkBitmap = themedArt
+                updateMediaMetadata(latestState.currentTrack, latestState, themedArt)
                 updateNotification(latestState)
                 PianobarWidgetProvider.updateAllWidgets(
                     this@PianobarPlaybackService,
                     latestState,
-                    loadedBitmap
+                    loadedRaw
                 )
             }
+        } else if (palette.id != currentThemeId || currentArtworkBitmap == null) {
+            // Theme changed (or first metadata pass): re-render lockscreen art with new theme immediately
+            currentThemeId = palette.id
+            val themedArt = PianobarArtworkRenderer.renderThemedArtwork(
+                context = this,
+                rawArtwork = rawArtworkBitmap,
+                palette = palette,
+                targetPx = 320,
+                cornerRadiusRatio = 0.08f
+            )
+            currentArtworkBitmap = themedArt
+            updateMediaMetadata(track, state, themedArt)
+            updateNotification(state)
         } else {
-            // Keep existing artwork bitmap on metadata update so lockscreen does not drop art
+            // Keep existing themed artwork bitmap so lockscreen does not flicker or drop art
             updateMediaMetadata(track, state, currentArtworkBitmap)
         }
     }
 
-    private suspend fun loadArtwork(url: String): Bitmap = withContext(Dispatchers.IO) {
+    private suspend fun loadRawArtwork(url: String): Bitmap? = withContext(Dispatchers.IO) {
         try {
             if (url.isNotBlank()) {
                 val loader = ImageLoader(this@PianobarPlaybackService)
@@ -161,27 +191,38 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
         } catch (e: Exception) {
             Log.w("PianobarService", "Could not load artwork from $url: ${e.message}")
         }
-        BitmapFactory.decodeResource(resources, R.drawable.ic_pianobar_logo)
+        null
     }
 
-    private fun updateMediaMetadata(track: Track, state: PlayerState, artwork: Bitmap?) {
+    private fun updateMediaMetadata(track: Track?, state: PlayerState, artwork: Bitmap?) {
         val stationName = state.currentStation?.name ?: "Pianobar Radio"
-        val fallbackBitmap = artwork ?: currentArtworkBitmap ?: BitmapFactory.decodeResource(resources, R.drawable.ic_pianobar_logo)
+        val palette = PianobarThemes.fromId(state.themeId)
+        val themedBitmap = artwork
+            ?: currentArtworkBitmap
+            ?: PianobarArtworkRenderer.renderThemedArtwork(
+                context = this,
+                rawArtwork = rawArtworkBitmap,
+                palette = palette,
+                targetPx = 320,
+                cornerRadiusRatio = 0.08f
+            )
+
+        val title = track?.title ?: "Pianobar"
+        val artist = track?.artist ?: "Pandora Radio Client"
+        val album = track?.album ?: stationName
+        val bitrate = track?.audioBitrate ?: "AAC 192k"
 
         val metadataBuilder = MediaMetadata.Builder()
-            .putString(MediaMetadata.METADATA_KEY_TITLE, track.title)
-            .putString(MediaMetadata.METADATA_KEY_ARTIST, track.artist)
-            .putString(MediaMetadata.METADATA_KEY_ALBUM, track.album)
-            .putString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE, track.title)
-            .putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, "${track.artist} • $stationName")
-            .putString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, "Pianobar Pandora Client • ${track.audioBitrate}")
+            .putString(MediaMetadata.METADATA_KEY_TITLE, title)
+            .putString(MediaMetadata.METADATA_KEY_ARTIST, artist)
+            .putString(MediaMetadata.METADATA_KEY_ALBUM, album)
+            .putString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE, title)
+            .putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, "$artist • $stationName")
+            .putString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, "Pianobar Pandora Client • $bitrate")
             .putLong(MediaMetadata.METADATA_KEY_DURATION, state.durationMs)
-
-        if (fallbackBitmap != null) {
-            metadataBuilder.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, fallbackBitmap)
-            metadataBuilder.putBitmap(MediaMetadata.METADATA_KEY_ART, fallbackBitmap)
-            metadataBuilder.putBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON, fallbackBitmap)
-        }
+            .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, themedBitmap)
+            .putBitmap(MediaMetadata.METADATA_KEY_ART, themedBitmap)
+            .putBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON, themedBitmap)
 
         mediaSession?.setMetadata(metadataBuilder.build())
     }
@@ -334,13 +375,23 @@ class PianobarPlaybackService : Service(), AudioManager.OnAudioFocusChangeListen
             .setShowActionsInCompactView(0, 1)
         mediaSession?.let { mediaStyle.setMediaSession(it.sessionToken) }
 
+        val palette = PianobarThemes.fromId(state.themeId)
+        val subtextPrefix = if (palette.id == AiSlopPalette.id) "✨ pianobar" else "pianobar"
+
         val largeArt = currentArtworkBitmap
-            ?: BitmapFactory.decodeResource(resources, R.drawable.ic_pianobar_logo)
+            ?: PianobarArtworkRenderer.renderThemedArtwork(
+                context = this,
+                rawArtwork = rawArtworkBitmap,
+                palette = palette,
+                targetPx = 320,
+                cornerRadiusRatio = 0.08f
+            )
 
         builder.setContentTitle(title)
             .setContentText("$artist • $stationName")
-            .setSubText("pianobar • ${track?.audioBitrate ?: "AAC 192k"}")
+            .setSubText("$subtextPrefix • ${track?.audioBitrate ?: "AAC 192k"}")
             .setSmallIcon(R.drawable.ic_notif_music)
+            .setColor(palette.accent.toArgb())
             .setLargeIcon(largeArt)
             .setContentIntent(openAppPendingIntent)
             .setVisibility(Notification.VISIBILITY_PUBLIC)

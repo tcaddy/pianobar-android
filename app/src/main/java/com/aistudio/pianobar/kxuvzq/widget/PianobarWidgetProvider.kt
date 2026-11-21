@@ -7,11 +7,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapShader
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.RectF
-import android.graphics.Shader
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
@@ -19,6 +14,7 @@ import android.util.Log
 import android.util.SizeF
 import android.widget.RemoteViews
 import androidx.annotation.VisibleForTesting
+import androidx.compose.ui.graphics.toArgb
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
@@ -27,6 +23,13 @@ import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.model.PlayerState
 import com.aistudio.pianobar.kxuvzq.player.PianobarPlayerManager
 import com.aistudio.pianobar.kxuvzq.service.PianobarPlaybackService
+import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopPalette
+import com.aistudio.pianobar.kxuvzq.ui.theme.AmberCrtPalette
+import com.aistudio.pianobar.kxuvzq.ui.theme.IcePalette
+import com.aistudio.pianobar.kxuvzq.ui.theme.NewsprintPalette
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianobarArtworkRenderer
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianobarThemes
+import com.aistudio.pianobar.kxuvzq.ui.theme.SolarizedPalette
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -38,7 +41,7 @@ class PianobarWidgetProvider : AppWidgetProvider() {
         super.onEnabled(context)
         val playerManager = PianobarPlayerManager.getInstance()
         playerManager.initialize(context.applicationContext)
-        updateAllWidgets(context, playerManager.state.value, cachedArtworkFor(playerManager.state.value))
+        updateAllWidgets(context, playerManager.state.value, cachedRawArtworkFor(playerManager.state.value))
     }
 
     override fun onUpdate(
@@ -49,12 +52,14 @@ class PianobarWidgetProvider : AppWidgetProvider() {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
         val playerManager = PianobarPlayerManager.getInstance()
         playerManager.initialize(context.applicationContext)
+        val state = playerManager.state.value
+        val themedArt = resolveThemedBitmap(context.applicationContext, state, cachedRawArtworkFor(state))
         updateWidgetsForIds(
             context = context,
             appWidgetManager = appWidgetManager,
             appWidgetIds = appWidgetIds,
-            state = playerManager.state.value,
-            artworkBitmap = cachedArtworkFor(playerManager.state.value)
+            state = state,
+            themedArtwork = themedArt
         )
     }
 
@@ -67,12 +72,14 @@ class PianobarWidgetProvider : AppWidgetProvider() {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
         val playerManager = PianobarPlayerManager.getInstance()
         playerManager.initialize(context.applicationContext)
+        val state = playerManager.state.value
+        val themedArt = resolveThemedBitmap(context.applicationContext, state, cachedRawArtworkFor(state))
         updateWidgetsForIds(
             context = context,
             appWidgetManager = appWidgetManager,
             appWidgetIds = intArrayOf(appWidgetId),
-            state = playerManager.state.value,
-            artworkBitmap = cachedArtworkFor(playerManager.state.value)
+            state = state,
+            themedArtwork = themedArt
         )
     }
 
@@ -95,7 +102,8 @@ class PianobarWidgetProvider : AppWidgetProvider() {
                 } catch (e: Exception) {
                     Log.w(TAG, "Unable to stop playback service from widget: ${e.message}")
                 }
-                updateAllWidgets(appContext, playerManager.state.value, cachedArtworkFor(playerManager.state.value))
+                val state = playerManager.state.value
+                updateAllWidgets(appContext, state, cachedRawArtworkFor(state))
             }
             ACTION_WIDGET_TOGGLE -> {
                 if (!playerManager.state.value.isUserLoggedIn) {
@@ -107,7 +115,7 @@ class PianobarWidgetProvider : AppWidgetProvider() {
                 if (updated.isPlaying || updated.isBuffering) {
                     PianobarPlaybackService.start(appContext)
                 }
-                updateAllWidgets(appContext, updated, cachedArtworkFor(updated))
+                updateAllWidgets(appContext, updated, cachedRawArtworkFor(updated))
             }
             ACTION_WIDGET_NEXT -> {
                 if (!playerManager.state.value.isUserLoggedIn) {
@@ -119,7 +127,7 @@ class PianobarWidgetProvider : AppWidgetProvider() {
                 if (updated.isPlaying || updated.isBuffering) {
                     PianobarPlaybackService.start(appContext)
                 }
-                updateAllWidgets(appContext, updated, cachedArtworkFor(updated))
+                updateAllWidgets(appContext, updated, cachedRawArtworkFor(updated))
             }
         }
     }
@@ -147,7 +155,8 @@ class PianobarWidgetProvider : AppWidgetProvider() {
         val stationName: String?,
         val isPlaying: Boolean,
         val isBuffering: Boolean,
-        val isUserLoggedIn: Boolean
+        val isUserLoggedIn: Boolean,
+        val themeId: String
     )
 
     companion object {
@@ -164,17 +173,56 @@ class PianobarWidgetProvider : AppWidgetProvider() {
         private var lastRenderKey: WidgetRenderKey? = null
 
         @Volatile
-        private var cachedArtworkUrl: String? = null
+        private var cachedRawArtworkUrl: String? = null
 
         @Volatile
-        private var cachedRoundedArtwork: Bitmap? = null
+        private var cachedRawArtwork: Bitmap? = null
+
+        @Volatile
+        private var cachedThemedKey: Pair<String?, String>? = null
+
+        @Volatile
+        private var cachedThemedBitmap: Bitmap? = null
 
         @Volatile
         private var inFlightArtworkUrl: String? = null
 
-        private fun cachedArtworkFor(state: PlayerState): Bitmap? {
+        private fun cachedRawArtworkFor(state: PlayerState): Bitmap? {
             val url = state.currentTrack?.artworkUrl
-            return if (!url.isNullOrBlank() && url == cachedArtworkUrl) cachedRoundedArtwork else null
+            return if (!url.isNullOrBlank() && url == cachedRawArtworkUrl) {
+                cachedRawArtwork?.takeIf { !it.isRecycled }
+            } else {
+                null
+            }
+        }
+
+        private fun resolveThemedBitmap(
+            context: Context,
+            state: PlayerState,
+            rawArtwork: Bitmap?
+        ): Bitmap {
+            val palette = PianobarThemes.fromId(state.themeId)
+            val url = state.currentTrack?.artworkUrl.orEmpty()
+            if (rawArtwork != null && !rawArtwork.isRecycled && url.isNotBlank()) {
+                cachedRawArtworkUrl = url
+                cachedRawArtwork = rawArtwork
+            }
+            val effectiveRaw = rawArtwork?.takeIf { !it.isRecycled } ?: cachedRawArtworkFor(state)
+            val cacheKey = (if (effectiveRaw != null) url else "") to palette.id
+            val existing = cachedThemedBitmap
+            if (cachedThemedKey == cacheKey && existing != null && !existing.isRecycled) {
+                return existing
+            }
+            val rendered = PianobarArtworkRenderer.renderThemedArtwork(
+                context = context,
+                rawArtwork = effectiveRaw,
+                palette = palette,
+                targetPx = WIDGET_ART_PX,
+                cornerRadiusRatio = 0.16f
+            )
+            cachedThemedKey = cacheKey
+            cachedThemedBitmap = rendered
+            return rendered
         }
 
         fun updateIfStateChanged(context: Context, state: PlayerState) {
@@ -188,11 +236,12 @@ class PianobarWidgetProvider : AppWidgetProvider() {
                 stationName = state.currentStation?.name,
                 isPlaying = state.isPlaying,
                 isBuffering = state.isBuffering,
-                isUserLoggedIn = state.isUserLoggedIn
+                isUserLoggedIn = state.isUserLoggedIn,
+                themeId = state.themeId
             )
             if (key == lastRenderKey) return
             lastRenderKey = key
-            updateAllWidgets(context, state, cachedArtworkFor(state))
+            updateAllWidgets(context, state, cachedRawArtworkFor(state))
         }
 
         fun updateAllWidgets(
@@ -217,27 +266,19 @@ class PianobarWidgetProvider : AppWidgetProvider() {
             if (appWidgetIds.isEmpty()) return
 
             val trackArtworkUrl = state.currentTrack?.artworkUrl.orEmpty()
-            val roundedArt = if (artworkBitmap != null) {
-                createRoundedWidgetBitmap(artworkBitmap).also {
-                    if (trackArtworkUrl.isNotBlank()) {
-                        cachedArtworkUrl = trackArtworkUrl
-                        cachedRoundedArtwork = it
-                    }
-                }
-            } else {
-                cachedArtworkFor(state)
-            }
+            val rawArt = artworkBitmap?.takeIf { !it.isRecycled } ?: cachedRawArtworkFor(state)
+            val themedArt = resolveThemedBitmap(appContext, state, rawArt)
 
             updateWidgetsForIds(
                 context = appContext,
                 appWidgetManager = appWidgetManager,
                 appWidgetIds = appWidgetIds,
                 state = state,
-                artworkBitmap = roundedArt
+                themedArtwork = themedArt
             )
 
-            // If we don't yet have cached artwork for the active track URL, fetch asynchronously
-            if (roundedArt == null && trackArtworkUrl.isNotBlank() && inFlightArtworkUrl != trackArtworkUrl) {
+            // If we don't yet have cached raw artwork for the active track URL, fetch asynchronously
+            if (rawArt == null && trackArtworkUrl.isNotBlank() && inFlightArtworkUrl != trackArtworkUrl) {
                 inFlightArtworkUrl = trackArtworkUrl
                 widgetScope.launch {
                     try {
@@ -251,17 +292,17 @@ class PianobarWidgetProvider : AppWidgetProvider() {
                         val loaded = (result as? SuccessResult)?.drawable as? BitmapDrawable
                         val bmp = loaded?.bitmap
                         if (bmp != null) {
-                            val rounded = createRoundedWidgetBitmap(bmp)
-                            cachedArtworkUrl = trackArtworkUrl
-                            cachedRoundedArtwork = rounded
+                            cachedRawArtworkUrl = trackArtworkUrl
+                            cachedRawArtwork = bmp
                             val latestState = PianobarPlayerManager.getInstance().state.value
                             if (latestState.currentTrack?.artworkUrl == trackArtworkUrl) {
+                                val updatedThemed = resolveThemedBitmap(appContext, latestState, bmp)
                                 updateWidgetsForIds(
                                     context = appContext,
                                     appWidgetManager = appWidgetManager,
                                     appWidgetIds = appWidgetManager.getAppWidgetIds(componentName),
                                     state = latestState,
-                                    artworkBitmap = rounded
+                                    themedArtwork = updatedThemed
                                 )
                             }
                         }
@@ -281,13 +322,13 @@ class PianobarWidgetProvider : AppWidgetProvider() {
             appWidgetManager: AppWidgetManager,
             appWidgetIds: IntArray,
             state: PlayerState,
-            artworkBitmap: Bitmap?
+            themedArtwork: Bitmap?
         ) {
             if (appWidgetIds.isEmpty()) return
             for (appWidgetId in appWidgetIds) {
                 val remoteViews = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    val compact = buildRemoteViewsForState(context, state, artworkBitmap, isCompact = true)
-                    val standard = buildRemoteViewsForState(context, state, artworkBitmap, isCompact = false)
+                    val compact = buildRemoteViewsForState(context, state, themedArtwork, isCompact = true)
+                    val standard = buildRemoteViewsForState(context, state, themedArtwork, isCompact = false)
                     RemoteViews(
                         mapOf(
                             SizeF(180f, 56f) to compact,
@@ -302,7 +343,7 @@ class PianobarWidgetProvider : AppWidgetProvider() {
                     }
                     val minHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)
                     val useCompact = minHeightDp in 1..95
-                    buildRemoteViewsForState(context, state, artworkBitmap, isCompact = useCompact)
+                    buildRemoteViewsForState(context, state, themedArtwork, isCompact = useCompact)
                 }
                 try {
                     appWidgetManager.updateAppWidget(appWidgetId, remoteViews)
@@ -319,8 +360,14 @@ class PianobarWidgetProvider : AppWidgetProvider() {
             roundedArtwork: Bitmap? = null,
             isCompact: Boolean = false
         ): RemoteViews {
+            val palette = PianobarThemes.fromId(state.themeId)
+            val isSlop = palette.id == AiSlopPalette.id
             val layoutId = if (isCompact) R.layout.widget_pianobar_compact else R.layout.widget_pianobar
             val views = RemoteViews(context.packageName, layoutId)
+
+            // Theme card surface & Play button backgrounds
+            views.setInt(R.id.widget_root, "setBackgroundResource", widgetBgResForTheme(palette.id))
+            views.setInt(R.id.widget_btn_play_pause, "setBackgroundResource", playBtnBgResForTheme(palette.id))
 
             val track = state.currentTrack
             val stationName = state.currentStation?.name ?: "QuickMix"
@@ -334,18 +381,30 @@ class PianobarWidgetProvider : AppWidgetProvider() {
             }
 
             views.setTextViewText(R.id.widget_title, title)
+            views.setTextColor(R.id.widget_title, palette.textPrimary.toArgb())
+
             views.setTextViewText(R.id.widget_subtitle, subtitle)
+            views.setTextColor(R.id.widget_subtitle, palette.textSecondary.toArgb())
 
             if (!isCompact) {
-                val subtext = "pianobar • ${track?.audioBitrate ?: "AAC 192k"}"
+                val subtextPrefix = if (isSlop) "✨ pianobar" else "pianobar"
+                val subtext = "$subtextPrefix • ${track?.audioBitrate ?: "AAC 192k"}"
                 views.setTextViewText(R.id.widget_subtext, subtext)
+                views.setTextColor(
+                    R.id.widget_subtext,
+                    if (isSlop) palette.accent.toArgb() else palette.textSecondary.toArgb()
+                )
+                views.setInt(R.id.widget_music_icon, "setColorFilter", palette.accent.toArgb())
+                views.setInt(R.id.widget_btn_stop, "setColorFilter", palette.textSecondary.toArgb())
             }
 
-            if (roundedArtwork != null) {
-                views.setImageViewBitmap(R.id.widget_artwork, roundedArtwork)
-            } else {
-                views.setImageViewResource(R.id.widget_artwork, R.drawable.ic_pianobar_logo)
-            }
+            val artworkToRender = roundedArtwork ?: PianobarArtworkRenderer.renderThemedPlaceholder(
+                context = context,
+                palette = palette,
+                targetPx = WIDGET_ART_PX,
+                cornerRadiusRatio = 0.16f
+            )
+            views.setImageViewBitmap(R.id.widget_artwork, artworkToRender)
 
             val isPlaying = state.isPlaying
             val playPauseIcon = if (isPlaying) R.drawable.ic_notif_pause else R.drawable.ic_notif_play
@@ -354,6 +413,12 @@ class PianobarWidgetProvider : AppWidgetProvider() {
             )
             views.setImageViewResource(R.id.widget_btn_play_pause, playPauseIcon)
             views.setContentDescription(R.id.widget_btn_play_pause, playPauseDesc)
+            views.setInt(
+                R.id.widget_btn_play_pause,
+                "setColorFilter",
+                if (isSlop) palette.onAccent.toArgb() else palette.textPrimary.toArgb()
+            )
+            views.setInt(R.id.widget_btn_next, "setColorFilter", palette.textPrimary.toArgb())
 
             // Wire tap actions
             val openAppIntent = Intent(context, MainActivity::class.java).apply {
@@ -385,6 +450,24 @@ class PianobarWidgetProvider : AppWidgetProvider() {
             return views
         }
 
+        private fun widgetBgResForTheme(themeId: String): Int = when (themeId) {
+            AmberCrtPalette.id -> R.drawable.widget_bg_amber_crt
+            IcePalette.id -> R.drawable.widget_bg_ice
+            SolarizedPalette.id -> R.drawable.widget_bg_solarized
+            NewsprintPalette.id -> R.drawable.widget_bg_newsprint
+            AiSlopPalette.id -> R.drawable.widget_bg_ai_slop
+            else -> R.drawable.widget_bg_midnight
+        }
+
+        private fun playBtnBgResForTheme(themeId: String): Int = when (themeId) {
+            AmberCrtPalette.id -> R.drawable.widget_play_btn_amber_crt
+            IcePalette.id -> R.drawable.widget_play_btn_ice
+            SolarizedPalette.id -> R.drawable.widget_play_btn_solarized
+            NewsprintPalette.id -> R.drawable.widget_play_btn_newsprint
+            AiSlopPalette.id -> R.drawable.widget_play_btn_ai_slop
+            else -> R.drawable.widget_play_btn_midnight
+        }
+
         private fun createActionPendingIntent(
             context: Context,
             action: String,
@@ -405,38 +488,15 @@ class PianobarWidgetProvider : AppWidgetProvider() {
         internal fun createRoundedWidgetBitmap(
             source: Bitmap,
             targetPx: Int = WIDGET_ART_PX,
-            cornerRadiusRatio: Float = 0.16f
+            cornerRadiusRatio: Float = 0.16f,
+            themeId: String = PianobarThemes.DEFAULT_ID
         ): Bitmap {
-            val safeSize = targetPx.coerceAtLeast(32)
-            val minSide = minOf(source.width, source.height).coerceAtLeast(1)
-            val cropX = (source.width - minSide) / 2
-            val cropY = (source.height - minSide) / 2
-            val square = if (source.width == source.height) {
-                source
-            } else {
-                Bitmap.createBitmap(source, cropX, cropY, minSide, minSide)
-            }
-            val scaled = if (square.width == safeSize && square.height == safeSize) {
-                square
-            } else {
-                Bitmap.createScaledBitmap(square, safeSize, safeSize, true)
-            }
-
-            val output = Bitmap.createBitmap(safeSize, safeSize, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(output)
-            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                shader = BitmapShader(scaled, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-            }
-            val radius = safeSize * cornerRadiusRatio
-            canvas.drawRoundRect(
-                RectF(0f, 0f, safeSize.toFloat(), safeSize.toFloat()),
-                radius,
-                radius,
-                paint
+            return PianobarArtworkRenderer.frameArtworkForTheme(
+                source = source,
+                palette = PianobarThemes.fromId(themeId),
+                targetPx = targetPx,
+                cornerRadiusRatio = cornerRadiusRatio
             )
-            if (scaled !== square && scaled !== source) scaled.recycle()
-            if (square !== source) square.recycle()
-            return output
         }
     }
 }

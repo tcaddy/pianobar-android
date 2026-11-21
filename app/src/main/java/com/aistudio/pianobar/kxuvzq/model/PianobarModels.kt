@@ -12,7 +12,7 @@ data class Track(
     val isLoved: Boolean = false,
     val isBanned: Boolean = false,
     val isBookmarked: Boolean = false,
-    val musicGenomeExplanation: String = "Rich piano melodies, mellow acoustic accompaniment, modal harmonic progressions, dynamic touch and gentle syncopation.",
+    val musicGenomeExplanation: String = "",
     val audioBitrate: String = "AAC 192 kbps",
     val year: String = "2024",
     val fetchedAtMs: Long = System.currentTimeMillis()
@@ -99,5 +99,7 @@ data class PlayerState(
     val themeId: String = "midnight",
     val sleepTimerRemainingSeconds: Long = 0L,
     val isSleepTimerActive: Boolean = false,
+    val isExplaining: Boolean = false,
+    val explainError: String? = null,
     val error: String? = null
 )

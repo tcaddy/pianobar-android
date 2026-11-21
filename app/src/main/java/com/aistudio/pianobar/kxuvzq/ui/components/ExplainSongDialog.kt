@@ -16,11 +16,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -52,6 +50,9 @@ import com.aistudio.pianobar.kxuvzq.ui.theme.TextSecondary
 fun ExplainSongDialog(
     track: Track?,
     stationName: String,
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
+    onRetry: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     if (track == null) return
@@ -108,7 +109,9 @@ fun ExplainSongDialog(
 
                     IconButton(
                         onClick = onDismiss,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier
+                            .size(48.dp)
+                            .testTag("explain_close_icon")
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -168,14 +171,69 @@ fun ExplainSongDialog(
                         .border(1.dp, PianoSurfaceBorder, RoundedCornerShape(8.dp)),
                     color = TerminalBg
                 ) {
-                    Text(
-                        text = track.musicGenomeExplanation,
-                        color = TerminalPrimary,
-                        fontSize = 13.sp,
-                        lineHeight = 20.sp,
-                        fontFamily = FontFamily.SansSerif,
-                        modifier = Modifier.padding(14.dp)
-                    )
+                    val explanationText = track.musicGenomeExplanation
+                    when {
+                        isLoading && explanationText.isBlank() -> {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp)
+                                    .testTag("explain_loading_indicator"),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    color = PianoCyan,
+                                    strokeWidth = 2.dp
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = "Querying Pandora Music Genome...",
+                                    color = TextSecondary,
+                                    fontSize = 13.sp,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
+                        explanationText.isNotBlank() -> {
+                            Text(
+                                text = explanationText,
+                                color = TerminalPrimary,
+                                fontSize = 13.sp,
+                                lineHeight = 20.sp,
+                                fontFamily = FontFamily.SansSerif,
+                                modifier = Modifier
+                                    .padding(14.dp)
+                                    .testTag("explain_result_text")
+                            )
+                        }
+                        else -> {
+                            Column(modifier = Modifier.padding(14.dp)) {
+                                Text(
+                                    text = errorMessage ?: "No explanation provided by Pandora for this track.",
+                                    color = TextSecondary,
+                                    fontSize = 13.sp,
+                                    lineHeight = 20.sp,
+                                    modifier = Modifier.testTag("explain_error_text")
+                                )
+                                if (onRetry != null) {
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    Button(
+                                        onClick = onRetry,
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = PianoSurfaceElevated,
+                                            contentColor = PianoCyan
+                                        ),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, PianoSurfaceBorder),
+                                        shape = RoundedCornerShape(6.dp),
+                                        modifier = Modifier.testTag("explain_retry_button")
+                                    ) {
+                                        Text("Retry", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
