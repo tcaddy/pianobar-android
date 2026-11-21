@@ -38,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
@@ -55,7 +54,10 @@ import androidx.compose.ui.window.DialogProperties
 import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDisabledContent
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoGreen
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoInputBackground
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoOnAccent
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoPurple
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoRed
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurface
@@ -152,7 +154,7 @@ fun LoginDialog(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email", color = TextSecondary) },
-                    placeholder = { Text("user@example.com", color = Color(0xFF64748B)) },
+                    placeholder = { Text("user@example.com", color = PianoDisabledContent) },
                     leadingIcon = {
                         Icon(Icons.Default.Person, contentDescription = null, tint = PianoCyan)
                     },
@@ -242,15 +244,15 @@ fun LoginDialog(
                         .testTag("login_submit_button"),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = PianoCyan,
-                        contentColor = Color.Black,
-                        disabledContainerColor = Color(0xFF1E293B),
-                        disabledContentColor = Color(0xFF64748B)
+                        contentColor = PianoOnAccent,
+                        disabledContainerColor = PianoInputBackground,
+                        disabledContentColor = PianoDisabledContent
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
-                            color = Color.Black,
+                            color = PianoOnAccent,
                             modifier = Modifier.size(20.dp),
                             strokeWidth = 2.dp
                         )

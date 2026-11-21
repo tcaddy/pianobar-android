@@ -3,6 +3,7 @@ package com.aistudio.pianobar.kxuvzq
 import android.content.Context
 import androidx.core.content.ContextCompat
 import androidx.test.core.app.ApplicationProvider
+import com.aistudio.pianobar.kxuvzq.data.PianobarPreferences
 import com.aistudio.pianobar.kxuvzq.data.StationRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -27,6 +28,18 @@ class ExampleRobolectricTest {
   fun defaultStationsEmptyUntilLogin() {
     val stations = StationRepository.defaultStations
     assertTrue(stations.isEmpty())
+  }
+
+  @Test
+  fun themeId_isPersistedAcrossPreferenceInstances() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val prefs = PianobarPreferences(context)
+    assertEquals("midnight", prefs.themeId)
+
+    prefs.themeId = "amber-crt"
+    assertEquals("amber-crt", PianobarPreferences(context).themeId)
+
+    prefs.themeId = "midnight"
   }
 
   @Test

@@ -3,6 +3,7 @@ package com.aistudio.pianobar.kxuvzq.ui.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,10 +47,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -62,12 +64,17 @@ import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.player.PianobarPlayerManager
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDragHandle
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoGreen
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoOnAccent
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianoOnSuccess
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoPurple
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoRed
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurface
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceBorder
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceElevated
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianobarPalette
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianobarThemes
 import com.aistudio.pianobar.kxuvzq.ui.theme.TextPrimary
 import com.aistudio.pianobar.kxuvzq.ui.theme.TextSecondary
 
@@ -108,7 +115,7 @@ fun SettingsSheet(
                     .width(44.dp)
                     .height(4.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF334155))
+                    .background(PianoDragHandle)
             )
         }
     ) {
@@ -386,7 +393,7 @@ fun SettingsSheet(
                             checked = highQualityAudio,
                             onCheckedChange = { highQualityAudio = it },
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
+                                checkedThumbColor = PianoOnSuccess,
                                 checkedTrackColor = PianoGreen,
                                 uncheckedThumbColor = TextSecondary,
                                 uncheckedTrackColor = PianoSurfaceElevated
@@ -409,12 +416,54 @@ fun SettingsSheet(
                             checked = backgroundPlayback,
                             onCheckedChange = { backgroundPlayback = it },
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
+                                checkedThumbColor = PianoOnSuccess,
                                 checkedTrackColor = PianoGreen,
                                 uncheckedThumbColor = TextSecondary,
                                 uncheckedTrackColor = PianoSurfaceElevated
                             )
                         )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Appearance
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, PianoSurfaceBorder, RoundedCornerShape(16.dp))
+                    .testTag("theme_selector"),
+                color = PianoSurface
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Appearance",
+                        color = TextPrimary,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Terminal palette · applies instantly",
+                        color = TextSecondary,
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        PianobarThemes.all.forEach { palette ->
+                            ThemeSwatch(
+                                palette = palette,
+                                selected = palette.id == state.themeId,
+                                onClick = { playerManager.setTheme(palette.id) }
+                            )
+                        }
                     }
                 }
             }
@@ -489,7 +538,7 @@ fun SettingsSheet(
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = if (isSelected) PianoCyan else PianoSurfaceElevated,
-                                    contentColor = if (isSelected) Color.Black else TextPrimary
+                                    contentColor = if (isSelected) PianoOnAccent else TextPrimary
                                 )
                             ) {
                                 Text(
@@ -572,7 +621,7 @@ fun SettingsSheet(
                 .testTag("save_settings_button"),
             colors = ButtonDefaults.buttonColors(
                 containerColor = PianoGreen,
-                contentColor = Color.Black
+                contentColor = PianoOnSuccess
             ),
             shape = RoundedCornerShape(8.dp)
         ) {
@@ -585,6 +634,54 @@ fun SettingsSheet(
         }
 
             Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun ThemeSwatch(
+    palette: PianobarPalette,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier
+            .width(112.dp)
+            .height(76.dp)
+            .testTag("theme_option_${palette.id}")
+            .semantics { contentDescription = "${palette.name}: ${palette.caption}" },
+        shape = RoundedCornerShape(10.dp),
+        color = if (selected) palette.surfaceElevated else PianoSurfaceElevated,
+        contentColor = TextPrimary,
+        border = androidx.compose.foundation.BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = if (selected) palette.accent else PianoSurfaceBorder
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                listOf(palette.background, palette.surface, palette.accent, palette.success)
+                    .forEach { swatch ->
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(swatch)
+                                .border(1.dp, palette.border, CircleShape)
+                        )
+                    }
+            }
+            Text(
+                text = palette.name,
+                color = if (selected) palette.accent else TextPrimary,
+                fontSize = 12.sp,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                maxLines = 1
+            )
         }
     }
 }

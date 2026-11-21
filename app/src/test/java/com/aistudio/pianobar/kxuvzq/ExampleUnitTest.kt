@@ -2,6 +2,7 @@ package com.aistudio.pianobar.kxuvzq
 
 import com.aistudio.pianobar.kxuvzq.model.PlaylistCachePolicy
 import com.aistudio.pianobar.kxuvzq.model.Track
+import com.aistudio.pianobar.kxuvzq.ui.theme.PianobarThemes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -32,6 +33,16 @@ class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
         assertEquals(4, 2 + 2)
+    }
+
+    @Test
+    fun themes_haveUniqueIdsAndSafeFallback() {
+        val ids = PianobarThemes.all.map { it.id }
+        assertEquals(ids.size, ids.toSet().size)
+        assertTrue(ids.contains(PianobarThemes.DEFAULT_ID))
+        assertEquals(PianobarThemes.DEFAULT_ID, PianobarThemes.fromId(null).id)
+        assertEquals(PianobarThemes.DEFAULT_ID, PianobarThemes.fromId("unknown").id)
+        assertEquals("ice", PianobarThemes.fromId("ice").id)
     }
 
     @Test
