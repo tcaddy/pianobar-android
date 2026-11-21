@@ -43,6 +43,7 @@ class ExampleUnitTest {
         assertEquals(PianobarThemes.DEFAULT_ID, PianobarThemes.fromId(null).id)
         assertEquals(PianobarThemes.DEFAULT_ID, PianobarThemes.fromId("unknown").id)
         assertEquals("ice", PianobarThemes.fromId("ice").id)
+        assertEquals("ai-slop", PianobarThemes.fromId("ai-slop").id)
     }
 
     @Test
