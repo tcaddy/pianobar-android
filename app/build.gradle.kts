@@ -15,8 +15,8 @@ android {
     applicationId = "com.aistudio.pianobar.kxuvzq"
     minSdk = 24
     targetSdk = 36
-    versionCode = 30
-    versionName = "30.0"
+    versionCode = 31
+    versionName = "31.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

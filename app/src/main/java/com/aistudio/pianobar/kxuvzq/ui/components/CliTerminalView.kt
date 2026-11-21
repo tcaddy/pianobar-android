@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import com.aistudio.pianobar.kxuvzq.model.LogType
 import com.aistudio.pianobar.kxuvzq.model.PianobarLog
 import com.aistudio.pianobar.kxuvzq.model.PlayerState
+import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopGradients
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalBg
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalBorderColor
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalError
@@ -60,6 +61,7 @@ import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalPrompt
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalSurface
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalText
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalWarn
+import com.aistudio.pianobar.kxuvzq.ui.theme.isAiSlopTheme
 import java.util.Locale
 
 @Composable
@@ -89,10 +91,12 @@ fun CliTerminalView(
         totalSeconds % 60
     )
 
+    val isSlop = isAiSlopTheme
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(TerminalBg)
+            .background(if (isSlop) TerminalBg.copy(alpha = 0.78f) else TerminalBg)
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         // Authentic ASCII Header
@@ -100,8 +104,14 @@ fun CliTerminalView(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
-                .border(1.dp, TerminalPrompt.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
-            color = TerminalHeader
+                .then(
+                    if (isSlop) {
+                        Modifier.border(1.dp, AiSlopGradients.borderBrush, RoundedCornerShape(8.dp))
+                    } else {
+                        Modifier.border(1.dp, TerminalPrompt.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                    }
+                ),
+            color = if (isSlop) TerminalHeader.copy(alpha = 0.85f) else TerminalHeader
         ) {
             Column(modifier = Modifier.padding(10.dp)) {
                 Text(
@@ -112,11 +122,23 @@ fun CliTerminalView(
  |  __/| | (_| | | |  __/ |_) | (_| | |
  |_|   |_|\__,_|_| |_|\___|_.__/ \__,_|_|  v2026.10
                     """.trimIndent(),
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    lineHeight = 12.sp,
-                    color = TerminalPrompt,
-                    fontWeight = FontWeight.Bold
+                    style = if (isSlop) {
+                        androidx.compose.ui.text.TextStyle(
+                            brush = AiSlopGradients.textBrush,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 10.sp,
+                            lineHeight = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    } else {
+                        androidx.compose.ui.text.TextStyle(
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 10.sp,
+                            lineHeight = 12.sp,
+                            color = TerminalPrompt,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -212,8 +234,14 @@ fun CliTerminalView(
                 .weight(1f)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(6.dp))
-                .background(TerminalHeader)
-                .border(1.dp, TerminalBorderColor, RoundedCornerShape(6.dp))
+                .background(if (isSlop) TerminalHeader.copy(alpha = 0.82f) else TerminalHeader)
+                .then(
+                    if (isSlop) {
+                        Modifier.border(1.dp, AiSlopGradients.borderBrush, RoundedCornerShape(6.dp))
+                    } else {
+                        Modifier.border(1.dp, TerminalBorderColor, RoundedCornerShape(6.dp))
+                    }
+                )
                 .padding(8.dp)
         ) {
             LazyColumn(
@@ -296,7 +324,13 @@ fun CliTerminalView(
                 },
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(TerminalPrompt)
+                    .then(
+                        if (isSlop) {
+                            Modifier.background(AiSlopGradients.vibrantBrush)
+                        } else {
+                            Modifier.background(TerminalPrompt)
+                        }
+                    )
                     .testTag("cli_submit_button")
             ) {
                 Icon(

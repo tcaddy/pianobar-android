@@ -73,6 +73,8 @@ import com.aistudio.pianobar.kxuvzq.ui.theme.PianoRed
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurface
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceBorder
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceElevated
+import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopGradients
+import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopPalette
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianobarPalette
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianobarThemes
 import com.aistudio.pianobar.kxuvzq.ui.theme.TextPrimary
@@ -644,6 +646,7 @@ private fun ThemeSwatch(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val isSlopSwatch = palette.id == AiSlopPalette.id
     Surface(
         onClick = onClick,
         modifier = Modifier
@@ -654,10 +657,14 @@ private fun ThemeSwatch(
         shape = RoundedCornerShape(10.dp),
         color = if (selected) palette.surfaceElevated else PianoSurfaceElevated,
         contentColor = TextPrimary,
-        border = androidx.compose.foundation.BorderStroke(
-            width = if (selected) 2.dp else 1.dp,
-            color = if (selected) palette.accent else PianoSurfaceBorder
-        )
+        border = when {
+            isSlopSwatch -> androidx.compose.foundation.BorderStroke(
+                width = if (selected) 2.dp else 1.2.dp,
+                brush = AiSlopGradients.borderBrush
+            )
+            selected -> androidx.compose.foundation.BorderStroke(2.dp, palette.accent)
+            else -> androidx.compose.foundation.BorderStroke(1.dp, PianoSurfaceBorder)
+        }
     ) {
         Column(
             modifier = Modifier.padding(10.dp),
@@ -676,7 +683,7 @@ private fun ThemeSwatch(
                     }
             }
             Text(
-                text = palette.name,
+                text = if (isSlopSwatch) "✨ ${palette.name}" else palette.name,
                 color = if (selected) palette.accent else TextPrimary,
                 fontSize = 12.sp,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,

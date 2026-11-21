@@ -49,11 +49,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -69,6 +70,9 @@ import com.aistudio.pianobar.kxuvzq.ui.components.HistorySheet
 import com.aistudio.pianobar.kxuvzq.ui.components.NowPlayingCard
 import com.aistudio.pianobar.kxuvzq.ui.components.SettingsSheet
 import com.aistudio.pianobar.kxuvzq.ui.components.StationSelectionSheet
+import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopBackdrop
+import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopGradients
+import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopStatusBanner
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoGreen
@@ -79,6 +83,7 @@ import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceBorder
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceElevated
 import com.aistudio.pianobar.kxuvzq.ui.theme.TextPrimary
 import com.aistudio.pianobar.kxuvzq.ui.theme.TextSecondary
+import com.aistudio.pianobar.kxuvzq.ui.theme.isAiSlopTheme
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,17 +109,26 @@ fun PianobarScreen(
         PianobarPlaybackService.start(context)
     }
 
-    Scaffold(
+    val isSlop = isAiSlopTheme
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(PianoDarkBg),
-        containerColor = PianoDarkBg,
+            .background(PianoDarkBg)
+    ) {
+        if (isSlop) {
+            AiSlopBackdrop()
+        }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = if (isSlop) Color.Transparent else PianoDarkBg,
         topBar = {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding(),
-                color = PianoDarkBg,
+                color = if (isSlop) PianoDarkBg.copy(alpha = 0.72f) else PianoDarkBg,
                 tonalElevation = 2.dp
             ) {
                 Row(
@@ -133,16 +147,35 @@ fun PianobarScreen(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(PianoSurfaceElevated)
-                                .border(1.dp, PianoSurfaceBorder, RoundedCornerShape(6.dp)),
+                                .background(
+                                    if (isSlop) PianoSurfaceElevated.copy(alpha = 0.85f) else PianoSurfaceElevated
+                                )
+                                .then(
+                                    if (isSlop) {
+                                        Modifier.border(1.5.dp, AiSlopGradients.borderBrush, RoundedCornerShape(6.dp))
+                                    } else {
+                                        Modifier.border(1.dp, PianoSurfaceBorder, RoundedCornerShape(6.dp))
+                                    }
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = ">_",
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold,
-                                color = PianoGreen,
-                                fontSize = 14.sp
+                                style = if (isSlop) {
+                                    TextStyle(
+                                        brush = AiSlopGradients.textBrush,
+                                        fontFamily = FontFamily.Monospace,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                } else {
+                                    TextStyle(
+                                        fontFamily = FontFamily.Monospace,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PianoGreen,
+                                        fontSize = 14.sp
+                                    )
+                                }
                             )
                         }
                         Spacer(modifier = Modifier.width(10.dp))
@@ -150,22 +183,33 @@ fun PianobarScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "pianobar",
-                                    color = TextPrimary,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = FontFamily.Monospace
+                                    style = if (isSlop) {
+                                        TextStyle(
+                                            brush = AiSlopGradients.textBrush,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontFamily = FontFamily.Monospace
+                                        )
+                                    } else {
+                                        TextStyle(
+                                            color = TextPrimary,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontFamily = FontFamily.Monospace
+                                        )
+                                    }
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = "CLI",
-                                    color = PianoGreen,
+                                    text = if (isSlop) "✨ AI PRO" else "CLI",
+                                    color = if (isSlop) PianoCyan else PianoGreen,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = FontFamily.Monospace
                                 )
                             }
                             Text(
-                                text = "Pandora Radio Client",
+                                text = if (isSlop) "Autonomous Audio Cloud ✨" else "Pandora Radio Client",
                                 color = TextSecondary,
                                 fontSize = 11.sp
                             )
@@ -265,17 +309,33 @@ fun PianobarScreen(
                                 Surface(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(20.dp))
-                                        .border(
-                                            width = if (isSelected) 1.5.dp else 1.dp,
-                                            color = if (isSelected) PianoCyan else PianoSurfaceBorder,
-                                            shape = RoundedCornerShape(20.dp)
+                                        .then(
+                                            if (isSlop && isSelected) {
+                                                Modifier.border(
+                                                    width = 1.5.dp,
+                                                    brush = AiSlopGradients.borderBrush,
+                                                    shape = RoundedCornerShape(20.dp)
+                                                )
+                                            } else {
+                                                Modifier.border(
+                                                    width = if (isSelected) 1.5.dp else 1.dp,
+                                                    color = if (isSelected) PianoCyan else PianoSurfaceBorder,
+                                                    shape = RoundedCornerShape(20.dp)
+                                                )
+                                            }
                                         )
                                         .clickable {
                                             ensureServiceStarted()
                                             playerManager.selectStation(station, autoPlay = true)
                                         }
                                         .testTag("station_chip_${station.id}"),
-                                    color = if (isSelected) PianoCyan.copy(alpha = 0.15f) else PianoSurfaceElevated
+                                    color = if (isSelected) {
+                                        PianoCyan.copy(alpha = 0.16f)
+                                    } else if (isSlop) {
+                                        PianoSurfaceElevated.copy(alpha = 0.72f)
+                                    } else {
+                                        PianoSurfaceElevated
+                                    }
                                 ) {
                                     Row(
                                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -301,7 +361,15 @@ fun PianobarScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(14.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        if (isSlop) {
+                            AiSlopStatusBanner(
+                                isPlaying = state.isPlaying,
+                                isBuffering = state.isBuffering
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
 
                         // Hero Now Playing Card
                         NowPlayingCard(
@@ -340,6 +408,7 @@ fun PianobarScreen(
                 }
             }
         }
+    }
     }
 
     // Station Selection Sheet

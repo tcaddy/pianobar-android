@@ -41,14 +41,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,6 +61,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.model.PlayerState
+import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopBentoStrip
+import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopGradients
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoAmber
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
@@ -70,6 +75,7 @@ import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceBorder
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceElevated
 import com.aistudio.pianobar.kxuvzq.ui.theme.TextPrimary
 import com.aistudio.pianobar.kxuvzq.ui.theme.TextSecondary
+import com.aistudio.pianobar.kxuvzq.ui.theme.isAiSlopTheme
 import java.util.Locale
 
 @Composable
@@ -110,12 +116,20 @@ fun NowPlayingCard(
         label = "artwork_scale"
     )
 
+    val isSlop = isAiSlopTheme
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .border(1.dp, PianoSurfaceBorder, RoundedCornerShape(24.dp)),
-        color = PianoSurface,
+            .then(
+                if (isSlop) {
+                    Modifier.border(1.5.dp, AiSlopGradients.borderBrush, RoundedCornerShape(24.dp))
+                } else {
+                    Modifier.border(1.dp, PianoSurfaceBorder, RoundedCornerShape(24.dp))
+                }
+            ),
+        color = if (isSlop) PianoSurface.copy(alpha = 0.76f) else PianoSurface,
         tonalElevation = 4.dp
     ) {
         Column(
@@ -130,8 +144,12 @@ fun NowPlayingCard(
                 modifier = Modifier
                     .clip(CircleShape)
                     .testTag("station_selector_chip"),
-                color = PianoSurfaceElevated,
-                border = androidx.compose.foundation.BorderStroke(1.dp, PianoCyan.copy(alpha = 0.3f))
+                color = if (isSlop) PianoSurfaceElevated.copy(alpha = 0.85f) else PianoSurfaceElevated,
+                border = if (isSlop) {
+                    androidx.compose.foundation.BorderStroke(1.dp, AiSlopGradients.borderBrush)
+                } else {
+                    androidx.compose.foundation.BorderStroke(1.dp, PianoCyan.copy(alpha = 0.3f))
+                }
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
@@ -152,7 +170,7 @@ fun NowPlayingCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "• ${state.currentStation?.genre ?: "Pianobar"}",
+                        text = if (isSlop) "• ✨ ${state.currentStation?.genre ?: "Neural Mix"}" else "• ${state.currentStation?.genre ?: "Pianobar"}",
                         color = TextSecondary,
                         fontSize = 12.sp
                     )
@@ -162,13 +180,39 @@ fun NowPlayingCard(
             Spacer(modifier = Modifier.height(18.dp))
 
             // Artwork Cover
+            val glowColorPrimary = PianoCyan
+            val glowColorSecondary = PianoPurple
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.82f)
                     .aspectRatio(1f)
                     .scale(artworkScale)
+                    .then(
+                        if (isSlop) {
+                            Modifier.drawBehind {
+                                drawCircle(
+                                    brush = Brush.radialGradient(
+                                        colors = listOf(
+                                            glowColorPrimary.copy(alpha = if (state.isPlaying) 0.34f else 0.18f),
+                                            glowColorSecondary.copy(alpha = if (state.isPlaying) 0.22f else 0.10f),
+                                            Color.Transparent
+                                        )
+                                    ),
+                                    radius = size.maxDimension * 0.64f
+                                )
+                            }
+                        } else {
+                            Modifier
+                        }
+                    )
                     .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, PianoSurfaceBorder, RoundedCornerShape(12.dp))
+                    .then(
+                        if (isSlop) {
+                            Modifier.border(1.5.dp, AiSlopGradients.borderBrush, RoundedCornerShape(12.dp))
+                        } else {
+                            Modifier.border(1.dp, PianoSurfaceBorder, RoundedCornerShape(12.dp))
+                        }
+                    )
                     .background(PianoSurfaceElevated),
                 contentAlignment = Alignment.Center
             ) {
@@ -207,12 +251,18 @@ fun NowPlayingCard(
                         .padding(10.dp)
                         .clip(RoundedCornerShape(6.dp))
                         .background(PianoDarkBg.copy(alpha = 0.9f))
-                        .border(1.dp, PianoSurfaceBorder, RoundedCornerShape(6.dp))
+                        .then(
+                            if (isSlop) {
+                                Modifier.border(1.dp, AiSlopGradients.borderBrush, RoundedCornerShape(6.dp))
+                            } else {
+                                Modifier.border(1.dp, PianoSurfaceBorder, RoundedCornerShape(6.dp))
+                            }
+                        )
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = track?.audioBitrate ?: "AAC 192k",
-                        color = TextSecondary,
+                        text = if (isSlop) "⚡ ${track?.audioBitrate ?: "AAC 192k"}" else (track?.audioBitrate ?: "AAC 192k"),
+                        color = if (isSlop) PianoPurple else TextSecondary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = FontFamily.Monospace
@@ -243,9 +293,19 @@ fun NowPlayingCard(
             // Track metadata
             Text(
                 text = track?.title ?: if (state.isBuffering) "Loading Track..." else (state.currentStation?.name ?: "Select a Station to Play"),
-                color = TextPrimary,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                style = if (isSlop) {
+                    TextStyle(
+                        brush = AiSlopGradients.textBrush,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                } else {
+                    TextStyle(
+                        color = TextPrimary,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -366,9 +426,30 @@ fun NowPlayingCard(
                     onClick = onTogglePlayPause,
                     modifier = Modifier
                         .size(68.dp)
+                        .then(
+                            if (isSlop) {
+                                Modifier
+                                    .drawBehind {
+                                        drawCircle(
+                                            brush = Brush.radialGradient(
+                                                colors = listOf(
+                                                    glowColorPrimary.copy(alpha = 0.45f),
+                                                    glowColorSecondary.copy(alpha = 0.25f),
+                                                    Color.Transparent
+                                                )
+                                            ),
+                                            radius = size.maxDimension * 0.72f
+                                        )
+                                    }
+                                    .clip(CircleShape)
+                                    .background(AiSlopGradients.vibrantBrush)
+                            } else {
+                                Modifier
+                            }
+                        )
                         .testTag("play_pause_button"),
                     colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = PianoCyan,
+                        containerColor = if (isSlop) Color.Transparent else PianoCyan,
                         contentColor = PianoOnAccent
                     ),
                     shape = CircleShape
@@ -438,6 +519,10 @@ fun NowPlayingCard(
                         modifier = Modifier.size(24.dp)
                     )
                 }
+            }
+
+            if (isSlop) {
+                AiSlopBentoStrip()
             }
         }
     }

@@ -21,7 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopGradients
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoGreen
+import com.aistudio.pianobar.kxuvzq.ui.theme.isAiSlopTheme
 
 @Composable
 fun VisualizerBars(
@@ -30,6 +32,7 @@ fun VisualizerBars(
     barCount: Int = 18,
     maxHeight: Dp = 36.dp
 ) {
+    val isSlop = isAiSlopTheme
     val transition = rememberInfiniteTransition(label = "visualizer_anim")
 
     val anim1 by transition.animateFloat(
@@ -92,7 +95,13 @@ fun VisualizerBars(
                     .width(3.5.dp)
                     .fillMaxHeight(adjustedFraction)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(PianoGreen)
+                    .then(
+                        if (isSlop) {
+                            Modifier.background(AiSlopGradients.visualizerBrush)
+                        } else {
+                            Modifier.background(PianoGreen)
+                        }
+                    )
             )
         }
     }

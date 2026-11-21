@@ -45,10 +45,12 @@ Role groups:
 | `newsprint` | Newsprint | Warm paper UI with a dark CRT inset | `#F4F1EA` | `#1D5FA8` |
 | `ai-slop` | AI Slop | Opt-in parody: violet/cyan glow on slate-950 | `#020617` | `#C084FC` |
 
-`ai-slop` is a deliberate, self-contained joke: it borrows the purple-to-cyan,
-emerald-status, pink-error color language of LLM-generated SaaS pages but keeps
-the app's structure, controls, and terminal hierarchy intact. It is never the
-default.
+`ai-slop` is a deliberate, self-contained joke: it pairs the purple-to-cyan,
+emerald-status, pink-error color language of LLM-generated SaaS pages with
+Slopstrap-inspired ambient glowing orbs, tech grid lines, a pulsing dual-ring
+status pill, gradient borders/text/FAB, and a KPI bento strip—all strictly
+gated behind `isAiSlopTheme` so the five core palettes stay clean and flat. It
+is never the default.
 
 `midnight` is the default and the fallback for unknown stored ids. The selected
 id is persisted in `PianobarPreferences` and exposed through `PlayerState`, so
