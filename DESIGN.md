@@ -43,6 +43,12 @@ Role groups:
 | `ice` | Ice | Cold blue-slate precision terminal | `#0B1220` | `#7DD3FC` |
 | `solarized` | Solarized | Classic developer dark, brightened for AA | `#002B36` | `#3BBFB4` |
 | `newsprint` | Newsprint | Warm paper UI with a dark CRT inset | `#F4F1EA` | `#1D5FA8` |
+| `ai-slop` | AI Slop | Opt-in parody: violet/cyan glow on slate-950 | `#020617` | `#C084FC` |
+
+`ai-slop` is a deliberate, self-contained joke: it borrows the purple-to-cyan,
+emerald-status, pink-error color language of LLM-generated SaaS pages but keeps
+the app's structure, controls, and terminal hierarchy intact. It is never the
+default.
 
 `midnight` is the default and the fallback for unknown stored ids. The selected
 id is persisted in `PianobarPreferences` and exposed through `PlayerState`, so

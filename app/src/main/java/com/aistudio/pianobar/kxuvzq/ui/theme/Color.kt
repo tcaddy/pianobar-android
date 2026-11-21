@@ -252,6 +252,49 @@ val NewsprintPalette = PianobarPalette(
     dragHandle = Color(0xFFB8B0A0)
 )
 
+/**
+ * An intentionally loud, opt-in parody of LLM-generated SaaS pages:
+ * slate-950 glass, violet/cyan glow, emerald status, pink errors.
+ */
+val AiSlopPalette = PianobarPalette(
+    id = "ai-slop",
+    name = "AI Slop",
+    caption = "Violet → cyan · peak vibecoded",
+    isDark = true,
+    background = Color(0xFF020617),
+    surface = Color(0xFF0B1120),
+    surfaceElevated = Color(0xFF171333),
+    border = Color(0xFF3B2F63),
+    accent = Color(0xFFC084FC),
+    accentAlt = Color(0xFF22D3EE),
+    info = Color(0xFF818CF8),
+    success = Color(0xFF34D399),
+    warning = Color(0xFFFBBF24),
+    danger = Color(0xFFF472B6),
+    onAccent = Color(0xFF0B0514),
+    onAccentAlt = Color(0xFF020617),
+    onSuccess = Color(0xFF02120C),
+    textPrimary = Color(0xFFF8FAFC),
+    textSecondary = Color(0xFFCBD5E1),
+    textTertiary = Color(0xFF94A3B8),
+    terminalBackground = Color(0xFF060615),
+    terminalHeader = Color(0xFF03030B),
+    terminalSurface = Color(0xFF0D0A1F),
+    terminalBorder = Color(0xFF3B2F63),
+    terminalPrimary = Color(0xFFF8FAFC),
+    terminalText = Color(0xFF67E8F9),
+    terminalPrompt = Color(0xFFF0ABFC),
+    terminalOnAccent = Color(0xFF060615),
+    terminalWarning = Color(0xFFFBBF24),
+    terminalError = Color(0xFFFDA4AF),
+    terminalInfo = Color(0xFFA5B4FC),
+    terminalMuted = Color(0xFF94A3B8),
+    inputBackground = Color(0xFF171333),
+    mutedSurface = Color(0xFF171333),
+    disabledContent = Color(0xFF94A3B8),
+    dragHandle = Color(0xFF64748B)
+)
+
 object PianobarThemes {
     const val DEFAULT_ID = "midnight"
 
@@ -260,7 +303,8 @@ object PianobarThemes {
         AmberCrtPalette,
         IcePalette,
         SolarizedPalette,
-        NewsprintPalette
+        NewsprintPalette,
+        AiSlopPalette
     )
 
     fun fromId(id: String?): PianobarPalette =
