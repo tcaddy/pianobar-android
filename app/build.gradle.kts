@@ -118,7 +118,7 @@ dependencies {
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.okhttp)
-  robolectricSdks("org.robolectric:android-all-instrumented:14-robolectric-10818077-i7")
+  robolectricSdks("org.robolectric:android-all-instrumented:17-robolectric-15733970-i7")
   testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)
   testImplementation(libs.androidx.junit)
