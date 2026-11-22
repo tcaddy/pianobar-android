@@ -77,8 +77,9 @@ class AiSlopThemeTest {
     }
 
     @Test
-    fun nowPlayingCard_tiredButtonInvokesCallbackWhenTrackPresent() {
+    fun nowPlayingCard_tiredAndBookmarkButtonsInvokeCallbacksWhenTrackPresent() {
         var tiredClicked = 0
+        var bookmarkClicked = 0
         val track = Track(
             id = "t-99",
             title = "Nocturne",
@@ -97,7 +98,7 @@ class AiSlopThemeTest {
                         onSkipNext = {},
                         onLoveTrack = {},
                         onBanTrack = {},
-                        onBookmarkTrack = {},
+                        onBookmarkTrack = { bookmarkClicked++ },
                         onExplainTrack = {},
                         onSeek = {},
                         onOpenStationSelect = {},
@@ -111,11 +112,16 @@ class AiSlopThemeTest {
             .performScrollTo()
             .assertIsEnabled()
             .performClick()
+        composeTestRule.onNodeWithTag("bookmark_button")
+            .performScrollTo()
+            .assertIsEnabled()
+            .performClick()
         assertEquals(1, tiredClicked)
+        assertEquals(1, bookmarkClicked)
     }
 
     @Test
-    fun nowPlayingCard_tiredButtonDisabledWithoutTrack() {
+    fun nowPlayingCard_tiredAndBookmarkButtonsDisabledWithoutTrack() {
         composeTestRule.setContent {
             MyApplicationTheme(themeId = "midnight") {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -135,6 +141,9 @@ class AiSlopThemeTest {
         }
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithTag("tired_button")
+            .performScrollTo()
+            .assertIsNotEnabled()
+        composeTestRule.onNodeWithTag("bookmark_button")
             .performScrollTo()
             .assertIsNotEnabled()
     }

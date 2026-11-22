@@ -506,19 +506,18 @@ fun NowPlayingCard(
                     )
                 }
 
-                // Bookmark (b) Button
+                // Tired / Snooze 30d (t) Button
                 IconButton(
-                    onClick = onBookmarkTrack,
+                    onClick = onTiredTrack,
+                    enabled = track != null,
                     modifier = Modifier
                         .size(48.dp)
-                        .testTag("bookmark_button")
+                        .testTag("tired_button")
                 ) {
                     Icon(
-                        imageVector = ImageVector.vectorResource(
-                            if (isBookmarked) R.drawable.ic_icon_bookmark else R.drawable.ic_icon_bookmark_border
-                        ),
-                        contentDescription = "Bookmark (b)",
-                        tint = if (isBookmarked) PianoAmber else TextSecondary,
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_icon_snooze),
+                        contentDescription = "I'm tired of this song (t)",
+                        tint = if (track != null) TextSecondary else TextSecondary.copy(alpha = 0.4f),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -575,20 +574,20 @@ fun NowPlayingCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Secondary Snooze / Tired of Song (t) Action
+            // Bookmark (b) Action
             Surface(
-                onClick = onTiredTrack,
+                onClick = onBookmarkTrack,
                 enabled = track != null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 48.dp)
-                    .testTag("tired_button"),
+                    .testTag("bookmark_button"),
                 shape = RoundedCornerShape(12.dp),
                 color = if (isSlop) PianoSurfaceElevated.copy(alpha = 0.72f) else PianoSurfaceElevated.copy(alpha = 0.65f),
-                border = if (isSlop && track != null) {
-                    androidx.compose.foundation.BorderStroke(1.dp, AiSlopGradients.borderBrush)
-                } else {
-                    androidx.compose.foundation.BorderStroke(1.dp, PianoSurfaceBorder.copy(alpha = 0.75f))
+                border = when {
+                    isSlop && track != null -> androidx.compose.foundation.BorderStroke(1.dp, AiSlopGradients.borderBrush)
+                    isBookmarked -> androidx.compose.foundation.BorderStroke(1.dp, PianoAmber.copy(alpha = 0.6f))
+                    else -> androidx.compose.foundation.BorderStroke(1.dp, PianoSurfaceBorder.copy(alpha = 0.75f))
                 }
             ) {
                 Row(
@@ -599,14 +598,16 @@ fun NowPlayingCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.ic_icon_snooze),
+                        imageVector = ImageVector.vectorResource(
+                            if (isBookmarked) R.drawable.ic_icon_bookmark else R.drawable.ic_icon_bookmark_border
+                        ),
                         contentDescription = null,
                         tint = if (track != null) PianoAmber else TextSecondary.copy(alpha = 0.5f),
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "I'm tired of this song",
+                        text = if (isBookmarked) "Bookmarked" else "Bookmark this song",
                         fontFamily = BodyFontFamily,
                         color = if (track != null) TextPrimary else TextSecondary.copy(alpha = 0.5f),
                         fontSize = 13.sp,
@@ -614,7 +615,7 @@ fun NowPlayingCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "(30d)",
+                        text = "(b)",
                         color = if (track != null) TextSecondary else TextSecondary.copy(alpha = 0.4f),
                         fontSize = 11.sp,
                         fontFamily = MonoFontFamily

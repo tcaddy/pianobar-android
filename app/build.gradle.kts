@@ -63,12 +63,33 @@ android {
     compose = true
     buildConfig = true
   }
-  testOptions { unitTests { isIncludeAndroidResources = true } }
+  testOptions {
+    unitTests {
+      isIncludeAndroidResources = true
+      all { test ->
+        val robolectricDir = layout.buildDirectory.dir("robolectric-sdks")
+        test.dependsOn("syncRobolectricSdks")
+        test.systemProperty("robolectric.dependency.dir", robolectricDir.get().asFile.absolutePath)
+        test.systemProperty("robolectric.offline", "true")
+      }
+    }
+  }
   dependenciesInfo {
     includeInApk = false
     includeInBundle = true
   }
 }
+
+val robolectricSdks by configurations.creating {
+  isCanBeConsumed = false
+  isCanBeResolved = true
+}
+
+val syncRobolectricSdks by
+    tasks.registering(Sync::class) {
+      from(robolectricSdks)
+      into(layout.buildDirectory.dir("robolectric-sdks"))
+    }
 
 // Configure the Secrets Gradle Plugin to use .env and .env.example files
 // to match the convention used in Web projects.
@@ -97,6 +118,7 @@ dependencies {
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.okhttp)
+  robolectricSdks("org.robolectric:android-all-instrumented:14-robolectric-10818077-i7")
   testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)
   testImplementation(libs.androidx.junit)
