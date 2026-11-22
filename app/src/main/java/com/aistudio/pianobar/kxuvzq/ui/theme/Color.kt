@@ -1,7 +1,20 @@
 package com.aistudio.pianobar.kxuvzq.ui.theme
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+
+/**
+ * Typographic personality associated with each palette.
+ * Kept as a pure Kotlin enum (without Android resource references) so unit tests
+ * can inspect themes without an Android Context.
+ */
+enum class PaletteTypographyStyle {
+    MODERN_DARK,   // Plus Jakarta Sans + JetBrains Mono
+    CRT_MONO,      // IBM Plex Mono display + Plus Jakarta Sans body
+    TECHNICAL,     // Plus Jakarta Sans + IBM Plex Mono telemetry
+    DEVELOPER,     // JetBrains Mono headings + Plus Jakarta Sans body
+    EDITORIAL,     // Newsreader serif headings + Plus Jakarta Sans + IBM Plex Mono
+    AI_SLOP        // High-energy sans display
+}
 
 /**
  * A complete terminal palette. Names are semantic roles, so components never
@@ -12,6 +25,7 @@ data class PianobarPalette(
     val name: String,
     val caption: String,
     val isDark: Boolean,
+    val typographyStyle: PaletteTypographyStyle = PaletteTypographyStyle.MODERN_DARK,
 
     val background: Color,
     val surface: Color,
@@ -52,204 +66,209 @@ data class PianobarPalette(
     val dragHandle: Color
 )
 
-/** GitHub-dark terminal palette: the app's original identity. */
+/** Oceanic slate-indigo terminal palette: crisp contrast and quiet depth. */
 val MidnightPalette = PianobarPalette(
     id = "midnight",
     name = "Midnight",
-    caption = "GitHub dark · phosphor green",
+    caption = "Deep oceanic slate · phosphor green",
     isDark = true,
-    background = Color(0xFF0D1117),
-    surface = Color(0xFF161B22),
-    surfaceElevated = Color(0xFF21262D),
-    border = Color(0xFF30363D),
+    typographyStyle = PaletteTypographyStyle.MODERN_DARK,
+    background = Color(0xFF0B1018),
+    surface = Color(0xFF121923),
+    surfaceElevated = Color(0xFF192230),
+    border = Color(0xFF283548),
     accent = Color(0xFF58A6FF),
-    accentAlt = Color(0xFFBC8CFF),
-    info = Color(0xFF388BFD),
+    accentAlt = Color(0xFFA78BFA),
+    info = Color(0xFF60A5FA),
     success = Color(0xFF3FB950),
-    warning = Color(0xFFD29922),
+    warning = Color(0xFFE0A82E),
     danger = Color(0xFFF85149),
-    onAccent = Color(0xFF000000),
-    onAccentAlt = Color(0xFF0D1117),
-    onSuccess = Color(0xFF000000),
+    onAccent = Color(0xFF041326),
+    onAccentAlt = Color(0xFF0D0821),
+    onSuccess = Color(0xFF041B0A),
     textPrimary = Color(0xFFF0F6FC),
-    textSecondary = Color(0xFF8B949E),
-    textTertiary = Color(0xFF484F58),
-    terminalBackground = Color(0xFF090D13),
-    terminalHeader = Color(0xFF030508),
-    terminalSurface = Color(0xFF080C14),
-    terminalBorder = Color(0xFF1C2538),
+    textSecondary = Color(0xFF9FB0C4),
+    textTertiary = Color(0xFF7D90A8),
+    terminalBackground = Color(0xFF080C12),
+    terminalHeader = Color(0xFF04070B),
+    terminalSurface = Color(0xFF0E141E),
+    terminalBorder = Color(0xFF1E293B),
     terminalPrimary = Color(0xFFF0F6FC),
     terminalText = Color(0xFF3FB950),
     terminalPrompt = Color(0xFF58A6FF),
-    terminalOnAccent = Color(0xFF090D13),
-    terminalWarning = Color(0xFFD29922),
+    terminalOnAccent = Color(0xFF041326),
+    terminalWarning = Color(0xFFE0A82E),
     terminalError = Color(0xFFF85149),
-    terminalInfo = Color(0xFF8899A6),
-    terminalMuted = Color(0xFF718093),
-    inputBackground = Color(0xFF1E293B),
-    mutedSurface = Color(0xFF1E293B),
-    disabledContent = Color(0xFF64748B),
-    dragHandle = Color(0xFF334155)
+    terminalInfo = Color(0xFF94A3B8),
+    terminalMuted = Color(0xFF7D90A8),
+    inputBackground = Color(0xFF192230),
+    mutedSurface = Color(0xFF192230),
+    disabledContent = Color(0xFF7D90A8),
+    dragHandle = Color(0xFF3B4B62)
 )
 
-/** Warm monochrome CRT: amber phosphor on deep brown-black. */
+/** Warm monochrome CRT: P3 amber phosphor on roasted obsidian. */
 val AmberCrtPalette = PianobarPalette(
     id = "amber-crt",
     name = "Amber CRT",
-    caption = "Warm phosphor · monochrome warmth",
+    caption = "P3 phosphor · IBM Plex Mono",
     isDark = true,
-    background = Color(0xFF120E08),
-    surface = Color(0xFF1C150B),
-    surfaceElevated = Color(0xFF2A2012),
-    border = Color(0xFF42341A),
+    typographyStyle = PaletteTypographyStyle.CRT_MONO,
+    background = Color(0xFF100B04),
+    surface = Color(0xFF191207),
+    surfaceElevated = Color(0xFF251B0B),
+    border = Color(0xFF473619),
     accent = Color(0xFFFFB000),
-    accentAlt = Color(0xFFFF8A3D),
-    info = Color(0xFFC7A876),
+    accentAlt = Color(0xFFFF9233),
+    info = Color(0xFFE0BA78),
     success = Color(0xFFFFD166),
-    warning = Color(0xFFFF8C42),
-    danger = Color(0xFFFF5E5B),
-    onAccent = Color(0xFF1A1204),
-    onAccentAlt = Color(0xFF1A1204),
-    onSuccess = Color(0xFF1A1204),
-    textPrimary = Color(0xFFFFE7B2),
-    textSecondary = Color(0xFFC7A876),
-    textTertiary = Color(0xFFA18352),
-    terminalBackground = Color(0xFF0C0905),
-    terminalHeader = Color(0xFF070502),
-    terminalSurface = Color(0xFF141007),
-    terminalBorder = Color(0xFF3A2C14),
-    terminalPrimary = Color(0xFFFFE7B2),
+    warning = Color(0xFFFF9538),
+    danger = Color(0xFFFF6B57),
+    onAccent = Color(0xFF1A1002),
+    onAccentAlt = Color(0xFF1A0E02),
+    onSuccess = Color(0xFF1A1202),
+    textPrimary = Color(0xFFFFE8BA),
+    textSecondary = Color(0xFFD5B47C),
+    textTertiary = Color(0xFFB39158),
+    terminalBackground = Color(0xFF0B0803),
+    terminalHeader = Color(0xFF060401),
+    terminalSurface = Color(0xFF140F05),
+    terminalBorder = Color(0xFF3B2D14),
+    terminalPrimary = Color(0xFFFFE8BA),
     terminalText = Color(0xFFFFB000),
     terminalPrompt = Color(0xFFFFD166),
-    terminalOnAccent = Color(0xFF0C0905),
-    terminalWarning = Color(0xFFFF8C42),
-    terminalError = Color(0xFFFF5E5B),
-    terminalInfo = Color(0xFFC7A876),
-    terminalMuted = Color(0xFF9A7C50),
-    inputBackground = Color(0xFF2A2012),
-    mutedSurface = Color(0xFF2A2012),
-    disabledContent = Color(0xFF9A7C50),
+    terminalOnAccent = Color(0xFF1A1002),
+    terminalWarning = Color(0xFFFF9538),
+    terminalError = Color(0xFFFF6B57),
+    terminalInfo = Color(0xFFD5B47C),
+    terminalMuted = Color(0xFFB39158),
+    inputBackground = Color(0xFF251B0B),
+    mutedSurface = Color(0xFF251B0B),
+    disabledContent = Color(0xFFB39158),
     dragHandle = Color(0xFF6B5228)
 )
 
-/** Cold blue-slate: a quiet, high-contrast winter terminal. */
+/** Cold sapphire-slate: high-contrast winter instrument panel. */
 val IcePalette = PianobarPalette(
     id = "ice",
     name = "Ice",
-    caption = "Blue slate · cool precision",
+    caption = "Arctic slate · crisp technical sans",
     isDark = true,
-    background = Color(0xFF0B1220),
-    surface = Color(0xFF111B2E),
-    surfaceElevated = Color(0xFF18263D),
-    border = Color(0xFF2B3E5F),
+    typographyStyle = PaletteTypographyStyle.TECHNICAL,
+    background = Color(0xFF08101C),
+    surface = Color(0xFF0F1A2C),
+    surfaceElevated = Color(0xFF16253E),
+    border = Color(0xFF2B4163),
     accent = Color(0xFF7DD3FC),
     accentAlt = Color(0xFFA5B4FC),
     info = Color(0xFF60A5FA),
     success = Color(0xFF5EEAD4),
     warning = Color(0xFFFBBF24),
     danger = Color(0xFFFB7185),
-    onAccent = Color(0xFF071320),
-    onAccentAlt = Color(0xFF0B1220),
-    onSuccess = Color(0xFF071320),
-    textPrimary = Color(0xFFE6F1FF),
-    textSecondary = Color(0xFF9FB3CC),
-    textTertiary = Color(0xFF6B8299),
-    terminalBackground = Color(0xFF070D18),
-    terminalHeader = Color(0xFF040810),
-    terminalSurface = Color(0xFF0C1626),
-    terminalBorder = Color(0xFF243955),
-    terminalPrimary = Color(0xFFE6F1FF),
+    onAccent = Color(0xFF041422),
+    onAccentAlt = Color(0xFF090E24),
+    onSuccess = Color(0xFF041C19),
+    textPrimary = Color(0xFFEBF4FF),
+    textSecondary = Color(0xFFA8BDD6),
+    textTertiary = Color(0xFF819BB8),
+    terminalBackground = Color(0xFF060C16),
+    terminalHeader = Color(0xFF03070E),
+    terminalSurface = Color(0xFF0C1524),
+    terminalBorder = Color(0xFF223654),
+    terminalPrimary = Color(0xFFEBF4FF),
     terminalText = Color(0xFF67E8F9),
     terminalPrompt = Color(0xFFA5B4FC),
-    terminalOnAccent = Color(0xFF070D18),
+    terminalOnAccent = Color(0xFF041422),
     terminalWarning = Color(0xFFFBBF24),
     terminalError = Color(0xFFFB7185),
-    terminalInfo = Color(0xFF9FB3CC),
-    terminalMuted = Color(0xFF6B8299),
-    inputBackground = Color(0xFF18263D),
-    mutedSurface = Color(0xFF18263D),
-    disabledContent = Color(0xFF9FB3CC),
-    dragHandle = Color(0xFF3D587D)
+    terminalInfo = Color(0xFFA8BDD6),
+    terminalMuted = Color(0xFF819BB8),
+    inputBackground = Color(0xFF16253E),
+    mutedSurface = Color(0xFF16253E),
+    disabledContent = Color(0xFF819BB8),
+    dragHandle = Color(0xFF3E5980)
 )
 
-/** Solarized dark, brightened where the classic values failed AA on surfaces. */
+/** Solarized dark, perceptually balanced surfaces and AA+ text contrast. */
 val SolarizedPalette = PianobarPalette(
     id = "solarized",
     name = "Solarized",
-    caption = "Classic developer dark · teal anchor",
+    caption = "Developer dark · teal anchor",
     isDark = true,
-    background = Color(0xFF002B36),
-    surface = Color(0xFF073642),
-    surfaceElevated = Color(0xFF0A4050),
-    border = Color(0xFF1A5260),
-    accent = Color(0xFF3BBFB4),
-    accentAlt = Color(0xFF9BA2EE),
-    info = Color(0xFF6CB6E8),
-    success = Color(0xFF9CB300),
-    warning = Color(0xFFD9A400),
-    danger = Color(0xFFFF857C),
-    onAccent = Color(0xFF002B36),
-    onAccentAlt = Color(0xFF002B36),
-    onSuccess = Color(0xFF002B36),
-    textPrimary = Color(0xFFEEE8D5),
-    textSecondary = Color(0xFF9BA9A9),
-    textTertiary = Color(0xFF8BA1A9),
-    terminalBackground = Color(0xFF00212A),
-    terminalHeader = Color(0xFF001A22),
-    terminalSurface = Color(0xFF052C38),
-    terminalBorder = Color(0xFF1A5260),
-    terminalPrimary = Color(0xFFEEE8D5),
-    terminalText = Color(0xFF9CB300),
-    terminalPrompt = Color(0xFF3BBFB4),
-    terminalOnAccent = Color(0xFF00212A),
-    terminalWarning = Color(0xFFD9A400),
-    terminalError = Color(0xFFFF857C),
-    terminalInfo = Color(0xFF9BA9A9),
-    terminalMuted = Color(0xFF8BA1A9),
-    inputBackground = Color(0xFF0A4050),
-    mutedSurface = Color(0xFF0A4050),
-    disabledContent = Color(0xFF9BA9A9),
-    dragHandle = Color(0xFF3A6570)
+    typographyStyle = PaletteTypographyStyle.DEVELOPER,
+    background = Color(0xFF00242D),
+    surface = Color(0xFF06323D),
+    surfaceElevated = Color(0xFF0B404E),
+    border = Color(0xFF1F5D6C),
+    accent = Color(0xFF3CC7BC),
+    accentAlt = Color(0xFF9CA4F0),
+    info = Color(0xFF6EB9EB),
+    success = Color(0xFFA2BA00),
+    warning = Color(0xFFE0AA00),
+    danger = Color(0xFFFF7E75),
+    onAccent = Color(0xFF002028),
+    onAccentAlt = Color(0xFF080A26),
+    onSuccess = Color(0xFF0E1A00),
+    textPrimary = Color(0xFFF0EAD6),
+    textSecondary = Color(0xFFA5B5B5),
+    textTertiary = Color(0xFF8FA7AA),
+    terminalBackground = Color(0xFF001D24),
+    terminalHeader = Color(0xFF00161C),
+    terminalSurface = Color(0xFF052A34),
+    terminalBorder = Color(0xFF1B5260),
+    terminalPrimary = Color(0xFFF0EAD6),
+    terminalText = Color(0xFFA2BA00),
+    terminalPrompt = Color(0xFF3CC7BC),
+    terminalOnAccent = Color(0xFF002028),
+    terminalWarning = Color(0xFFE0AA00),
+    terminalError = Color(0xFFFF7E75),
+    terminalInfo = Color(0xFFA5B5B5),
+    terminalMuted = Color(0xFF8FA7AA),
+    inputBackground = Color(0xFF0B404E),
+    mutedSurface = Color(0xFF0B404E),
+    disabledContent = Color(0xFF8FA7AA),
+    dragHandle = Color(0xFF3A6874)
 )
 
-/** High-contrast paper UI with a dark terminal inset. */
+/** Editorial paper & ink inspired by Impeccable's "Paper and Instruments" craft. */
 val NewsprintPalette = PianobarPalette(
     id = "newsprint",
     name = "Newsprint",
-    caption = "Warm paper · ink and dark CRT",
+    caption = "Archival paper · Newsreader serif",
     isDark = false,
-    background = Color(0xFFF4F1EA),
-    surface = Color(0xFFFFFDF8),
-    surfaceElevated = Color(0xFFEAE5D9),
-    border = Color(0xFFCFC7B6),
-    accent = Color(0xFF1D5FA8),
-    accentAlt = Color(0xFF7A3E9D),
-    info = Color(0xFF1D5FA8),
-    success = Color(0xFF1E7145),
-    warning = Color(0xFF8A5A00),
+    typographyStyle = PaletteTypographyStyle.EDITORIAL,
+    background = Color(0xFFF2EDE3),
+    surface = Color(0xFFFCF9F2),
+    surfaceElevated = Color(0xFFE7E1D3),
+    border = Color(0xFFCBBFA9),
+    accent = Color(0xFF19569A),
+    accentAlt = Color(0xFF6D3991),
+    info = Color(0xFF19569A),
+    success = Color(0xFF1A6B40),
+    warning = Color(0xFF8C5A00),
     danger = Color(0xFFB3261E),
     onAccent = Color(0xFFFFFFFF),
     onAccentAlt = Color(0xFFFFFFFF),
     onSuccess = Color(0xFFFFFFFF),
-    textPrimary = Color(0xFF1C1B18),
-    textSecondary = Color(0xFF5A5448),
-    textTertiary = Color(0xFF827B6C),
-    terminalBackground = Color(0xFF1C1B18),
-    terminalHeader = Color(0xFF121110),
-    terminalSurface = Color(0xFF26251F),
-    terminalBorder = Color(0xFF4A463C),
-    terminalPrimary = Color(0xFFF4F1EA),
+    textPrimary = Color(0xFF181714),
+    textSecondary = Color(0xFF524C3F),
+    textTertiary = Color(0xFF6D6657),
+    terminalBackground = Color(0xFF181714),
+    terminalHeader = Color(0xFF100F0D),
+    terminalSurface = Color(0xFF23211C),
+    terminalBorder = Color(0xFF4A453B),
+    terminalPrimary = Color(0xFFF2EDE3),
     terminalText = Color(0xFFA7C957),
     terminalPrompt = Color(0xFF7FC8F8),
-    terminalOnAccent = Color(0xFF1C1B18),
+    terminalOnAccent = Color(0xFF181714),
     terminalWarning = Color(0xFFF0B429),
     terminalError = Color(0xFFF87171),
     terminalInfo = Color(0xFFC8D3E0),
-    terminalMuted = Color(0xFF9A9382),
+    terminalMuted = Color(0xFF9F9888),
     inputBackground = Color(0xFFFFFFFF),
-    mutedSurface = Color(0xFFEAE5D9),
-    disabledContent = Color(0xFF827B6C),
-    dragHandle = Color(0xFFB8B0A0)
+    mutedSurface = Color(0xFFE7E1D3),
+    disabledContent = Color(0xFF6D6657),
+    dragHandle = Color(0xFFB0A795)
 )
 
 /**
@@ -261,6 +280,7 @@ val AiSlopPalette = PianobarPalette(
     name = "AI Slop",
     caption = "Violet → cyan · peak vibecoded",
     isDark = true,
+    typographyStyle = PaletteTypographyStyle.AI_SLOP,
     background = Color(0xFF020617),
     surface = Color(0xFF0B1120),
     surfaceElevated = Color(0xFF171333),
@@ -312,97 +332,97 @@ object PianobarThemes {
 }
 
 val PianoDarkBg: Color
-    @Composable get() = LocalPianobarPalette.current.background
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.background
 
 val PianoSurface: Color
-    @Composable get() = LocalPianobarPalette.current.surface
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.surface
 
 val PianoSurfaceElevated: Color
-    @Composable get() = LocalPianobarPalette.current.surfaceElevated
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.surfaceElevated
 
 val PianoSurfaceBorder: Color
-    @Composable get() = LocalPianobarPalette.current.border
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.border
 
 val PianoCyan: Color
-    @Composable get() = LocalPianobarPalette.current.accent
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.accent
 
 val PianoBlue: Color
-    @Composable get() = LocalPianobarPalette.current.info
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.info
 
 val PianoPurple: Color
-    @Composable get() = LocalPianobarPalette.current.accentAlt
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.accentAlt
 
 val PianoGreen: Color
-    @Composable get() = LocalPianobarPalette.current.success
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.success
 
 val PianoAmber: Color
-    @Composable get() = LocalPianobarPalette.current.warning
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.warning
 
 val PianoRed: Color
-    @Composable get() = LocalPianobarPalette.current.danger
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.danger
 
 val PianoOnAccent: Color
-    @Composable get() = LocalPianobarPalette.current.onAccent
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.onAccent
 
 val PianoOnAccentAlt: Color
-    @Composable get() = LocalPianobarPalette.current.onAccentAlt
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.onAccentAlt
 
 val PianoOnSuccess: Color
-    @Composable get() = LocalPianobarPalette.current.onSuccess
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.onSuccess
 
 val PianoInputBackground: Color
-    @Composable get() = LocalPianobarPalette.current.inputBackground
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.inputBackground
 
 val PianoMutedSurface: Color
-    @Composable get() = LocalPianobarPalette.current.mutedSurface
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.mutedSurface
 
 val PianoDisabledContent: Color
-    @Composable get() = LocalPianobarPalette.current.disabledContent
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.disabledContent
 
 val PianoDragHandle: Color
-    @Composable get() = LocalPianobarPalette.current.dragHandle
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.dragHandle
 
 val TextPrimary: Color
-    @Composable get() = LocalPianobarPalette.current.textPrimary
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.textPrimary
 
 val TextSecondary: Color
-    @Composable get() = LocalPianobarPalette.current.textSecondary
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.textSecondary
 
 val TextTertiary: Color
-    @Composable get() = LocalPianobarPalette.current.textTertiary
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.textTertiary
 
 val TerminalBg: Color
-    @Composable get() = LocalPianobarPalette.current.terminalBackground
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.terminalBackground
 
 val TerminalHeader: Color
-    @Composable get() = LocalPianobarPalette.current.terminalHeader
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.terminalHeader
 
 val TerminalSurface: Color
-    @Composable get() = LocalPianobarPalette.current.terminalSurface
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.terminalSurface
 
 val TerminalBorderColor: Color
-    @Composable get() = LocalPianobarPalette.current.terminalBorder
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.terminalBorder
 
 val TerminalPrimary: Color
-    @Composable get() = LocalPianobarPalette.current.terminalPrimary
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.terminalPrimary
 
 val TerminalText: Color
-    @Composable get() = LocalPianobarPalette.current.terminalText
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.terminalText
 
 val TerminalPrompt: Color
-    @Composable get() = LocalPianobarPalette.current.terminalPrompt
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.terminalPrompt
 
 val TerminalOnAccent: Color
-    @Composable get() = LocalPianobarPalette.current.terminalOnAccent
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.terminalOnAccent
 
 val TerminalWarn: Color
-    @Composable get() = LocalPianobarPalette.current.terminalWarning
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.terminalWarning
 
 val TerminalError: Color
-    @Composable get() = LocalPianobarPalette.current.terminalError
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.terminalError
 
 val TerminalInfo: Color
-    @Composable get() = LocalPianobarPalette.current.terminalInfo
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.terminalInfo
 
 val TerminalMuted: Color
-    @Composable get() = LocalPianobarPalette.current.terminalMuted
+    @androidx.compose.runtime.Composable get() = LocalPianobarPalette.current.terminalMuted

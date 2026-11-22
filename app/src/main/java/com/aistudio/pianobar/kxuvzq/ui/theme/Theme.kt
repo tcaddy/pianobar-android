@@ -89,7 +89,7 @@ fun MyApplicationTheme(
     CompositionLocalProvider(LocalPianobarPalette provides palette) {
         MaterialTheme(
             colorScheme = palette.asColorScheme(),
-            typography = Typography,
+            typography = typographyFor(palette.typographyStyle),
             content = content
         )
     }

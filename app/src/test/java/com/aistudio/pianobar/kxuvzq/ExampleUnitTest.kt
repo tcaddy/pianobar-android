@@ -120,5 +120,50 @@ class ExampleUnitTest {
         assertTrue(PlaylistCachePolicy.isQueueExpired(listOf(fresh, stale), nowMs = nowMs))
         assertFalse(PlaylistCachePolicy.isQueueExpired(emptyList(), nowMs = nowMs))
     }
+
+    private fun relativeLuminance(color: androidx.compose.ui.graphics.Color): Double {
+        fun linearize(channel: Float): Double {
+            val c = channel.toDouble()
+            return if (c <= 0.03928) c / 12.92 else Math.pow((c + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * linearize(color.red) +
+            0.7152 * linearize(color.green) +
+            0.0722 * linearize(color.blue)
+    }
+
+    private fun contrastRatio(
+        fg: androidx.compose.ui.graphics.Color,
+        bg: androidx.compose.ui.graphics.Color
+    ): Double {
+        val l1 = relativeLuminance(fg)
+        val l2 = relativeLuminance(bg)
+        val lighter = maxOf(l1, l2)
+        val darker = minOf(l1, l2)
+        return (lighter + 0.05) / (darker + 0.05)
+    }
+
+    @Test
+    fun seriousPalettes_meetWcagAaTextAndActionContrast() {
+        val serious = PianobarThemes.all.filter { it.id != "ai-slop" }
+        assertEquals(5, serious.size)
+        serious.forEach { palette ->
+            assertTrue(
+                "${palette.id} textPrimary on surface must meet 7.0:1 AAA",
+                contrastRatio(palette.textPrimary, palette.surface) >= 7.0
+            )
+            assertTrue(
+                "${palette.id} textSecondary on surface must meet 4.5:1 AA",
+                contrastRatio(palette.textSecondary, palette.surface) >= 4.5
+            )
+            assertTrue(
+                "${palette.id} textTertiary on surface must meet 4.5:1 AA",
+                contrastRatio(palette.textTertiary, palette.surface) >= 4.5
+            )
+            assertTrue(
+                "${palette.id} onAccent on accent must meet 4.5:1 AA",
+                contrastRatio(palette.onAccent, palette.accent) >= 4.5
+            )
+        }
+    }
 }
 

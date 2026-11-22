@@ -50,6 +50,7 @@ import com.aistudio.pianobar.kxuvzq.model.LogType
 import com.aistudio.pianobar.kxuvzq.model.PianobarLog
 import com.aistudio.pianobar.kxuvzq.model.PlayerState
 import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopGradients
+import com.aistudio.pianobar.kxuvzq.ui.theme.MonoFontFamily
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalBg
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalBorderColor
 import com.aistudio.pianobar.kxuvzq.ui.theme.TerminalError
@@ -125,14 +126,14 @@ fun CliTerminalView(
                     style = if (isSlop) {
                         androidx.compose.ui.text.TextStyle(
                             brush = AiSlopGradients.textBrush,
-                            fontFamily = FontFamily.Monospace,
+                            fontFamily = MonoFontFamily,
                             fontSize = 10.sp,
                             lineHeight = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
                     } else {
                         androidx.compose.ui.text.TextStyle(
-                            fontFamily = FontFamily.Monospace,
+                            fontFamily = MonoFontFamily,
                             fontSize = 10.sp,
                             lineHeight = 12.sp,
                             color = TerminalPrompt,
@@ -151,7 +152,7 @@ fun CliTerminalView(
 
                 Text(
                     text = "|> Station: \"$stationName\"",
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     fontSize = 12.sp,
                     color = TerminalText,
                     fontWeight = FontWeight.SemiBold
@@ -159,7 +160,7 @@ fun CliTerminalView(
 
                 Text(
                     text = "|> \"$trackTitle\" by \"$trackArtist\" on \"$trackAlbum\"",
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     fontSize = 12.sp,
                     color = TerminalText
                 )
@@ -170,13 +171,13 @@ fun CliTerminalView(
                 ) {
                     Text(
                         text = "#   $timeFormatted  [${if (state.isPlaying) "PLAYING" else if (state.isBuffering) "BUFFER" else "PAUSED"}]",
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = MonoFontFamily,
                         fontSize = 11.sp,
                         color = TerminalInfo
                     )
                     Text(
                         text = track?.audioBitrate ?: "AAC 192k",
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = MonoFontFamily,
                         fontSize = 11.sp,
                         color = TerminalPrompt
                     )
@@ -219,7 +220,7 @@ fun CliTerminalView(
                 ) {
                     Text(
                         text = "[$key] $label",
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = MonoFontFamily,
                         fontSize = 11.sp
                     )
                 }
@@ -276,7 +277,7 @@ fun CliTerminalView(
                 placeholder = {
                     Text(
                         text = "Type pianobar command (p, n, +, -, s, e, help)...",
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = MonoFontFamily,
                         fontSize = 12.sp,
                         color = TerminalMuted
                     )
@@ -284,7 +285,7 @@ fun CliTerminalView(
                 leadingIcon = {
                     Text(
                         text = ">_",
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = MonoFontFamily,
                         color = TerminalPrompt,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
@@ -292,7 +293,7 @@ fun CliTerminalView(
                 },
                 singleLine = true,
                 textStyle = androidx.compose.ui.text.TextStyle(
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     fontSize = 13.sp,
                     color = TerminalText
                 ),
@@ -362,20 +363,20 @@ private fun LogLineItem(log: PianobarLog) {
     ) {
         Text(
             text = "${log.timeFormatted} ",
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MonoFontFamily,
             fontSize = 11.sp,
             color = TerminalMuted
         )
         Text(
             text = "${log.prefix} ",
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MonoFontFamily,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             color = color
         )
         Text(
             text = log.message,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MonoFontFamily,
             fontSize = 11.sp,
             color = if (log.type == LogType.PLAYING) TerminalText else color.copy(alpha = 0.9f)
         )

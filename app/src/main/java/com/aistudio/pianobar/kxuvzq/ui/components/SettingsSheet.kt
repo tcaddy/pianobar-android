@@ -75,10 +75,14 @@ import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceBorder
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoSurfaceElevated
 import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopGradients
 import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopPalette
+import com.aistudio.pianobar.kxuvzq.ui.theme.BodyFontFamily
+import com.aistudio.pianobar.kxuvzq.ui.theme.DisplayFontFamily
+import com.aistudio.pianobar.kxuvzq.ui.theme.MonoFontFamily
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianobarPalette
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianobarThemes
 import com.aistudio.pianobar.kxuvzq.ui.theme.TextPrimary
 import com.aistudio.pianobar.kxuvzq.ui.theme.TextSecondary
+import com.aistudio.pianobar.kxuvzq.ui.theme.displayFontFor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -151,12 +155,14 @@ fun SettingsSheet(
                 Column {
                     Text(
                         text = "Settings",
+                        fontFamily = DisplayFontFamily,
                         color = TextPrimary,
-                        fontSize = 18.sp,
+                        fontSize = 19.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "Pandora protocol & streaming configuration",
+                        fontFamily = BodyFontFamily,
                         color = TextSecondary,
                         fontSize = 12.sp
                     )
@@ -442,13 +448,15 @@ fun SettingsSheet(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Appearance",
+                        fontFamily = DisplayFontFamily,
                         color = TextPrimary,
-                        fontSize = 15.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Terminal palette · applies instantly",
+                        text = "Curated palette & typography · applies everywhere instantly",
+                        fontFamily = BodyFontFamily,
                         color = TextSecondary,
                         fontSize = 12.sp
                     )
@@ -589,7 +597,7 @@ fun SettingsSheet(
                     Row(modifier = Modifier.padding(vertical = 2.dp)) {
                         Text(
                             text = "[$cmd] ",
-                            fontFamily = FontFamily.Monospace,
+                            fontFamily = MonoFontFamily,
                             color = PianoGreen,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
@@ -647,48 +655,71 @@ private fun ThemeSwatch(
     onClick: () -> Unit
 ) {
     val isSlopSwatch = palette.id == AiSlopPalette.id
+    val specimenFont = displayFontFor(palette.typographyStyle)
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .width(112.dp)
-            .height(76.dp)
+            .width(126.dp)
+            .height(86.dp)
             .testTag("theme_option_${palette.id}")
             .semantics { contentDescription = "${palette.name}: ${palette.caption}" },
-        shape = RoundedCornerShape(10.dp),
-        color = if (selected) palette.surfaceElevated else PianoSurfaceElevated,
-        contentColor = TextPrimary,
+        shape = RoundedCornerShape(12.dp),
+        color = if (selected) palette.surfaceElevated else palette.surface,
+        contentColor = palette.textPrimary,
         border = when {
             isSlopSwatch -> androidx.compose.foundation.BorderStroke(
                 width = if (selected) 2.dp else 1.2.dp,
                 brush = AiSlopGradients.borderBrush
             )
             selected -> androidx.compose.foundation.BorderStroke(2.dp, palette.accent)
-            else -> androidx.compose.foundation.BorderStroke(1.dp, PianoSurfaceBorder)
+            else -> androidx.compose.foundation.BorderStroke(1.dp, palette.border)
         }
     ) {
         Column(
             modifier = Modifier.padding(10.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                listOf(palette.background, palette.surface, palette.accent, palette.success)
-                    .forEach { swatch ->
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(swatch)
-                                .border(1.dp, palette.border, CircleShape)
-                        )
-                    }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    listOf(palette.background, palette.surfaceElevated, palette.accent, palette.success)
+                        .forEach { swatch ->
+                            Box(
+                                modifier = Modifier
+                                    .size(11.dp)
+                                    .clip(CircleShape)
+                                    .background(swatch)
+                                    .border(0.8.dp, palette.border, CircleShape)
+                            )
+                        }
+                }
+                Text(
+                    text = "Aa",
+                    fontFamily = specimenFont,
+                    color = palette.accent,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
-            Text(
-                text = if (isSlopSwatch) "✨ ${palette.name}" else palette.name,
-                color = if (selected) palette.accent else TextPrimary,
-                fontSize = 12.sp,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                maxLines = 1
-            )
+            Column {
+                Text(
+                    text = if (isSlopSwatch) "✨ ${palette.name}" else palette.name,
+                    fontFamily = specimenFont,
+                    color = if (selected) palette.accent else palette.textPrimary,
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+                Text(
+                    text = palette.caption.substringBefore(" ·"),
+                    color = palette.textSecondary,
+                    fontSize = 10.sp,
+                    maxLines = 1
+                )
+            }
         }
     }
 }

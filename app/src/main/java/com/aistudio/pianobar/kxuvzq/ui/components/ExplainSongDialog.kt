@@ -34,6 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.aistudio.pianobar.kxuvzq.model.Track
+import com.aistudio.pianobar.kxuvzq.ui.theme.BodyFontFamily
+import com.aistudio.pianobar.kxuvzq.ui.theme.DisplayFontFamily
+import com.aistudio.pianobar.kxuvzq.ui.theme.MonoFontFamily
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoGreen
@@ -85,7 +88,7 @@ fun ExplainSongDialog(
                         ) {
                             Text(
                                 text = "e",
-                                fontFamily = FontFamily.Monospace,
+                                fontFamily = MonoFontFamily,
                                 fontWeight = FontWeight.Bold,
                                 color = PianoGreen,
                                 fontSize = 14.sp
@@ -95,12 +98,14 @@ fun ExplainSongDialog(
                         Column {
                             Text(
                                 text = "Song Explanation",
+                                fontFamily = DisplayFontFamily,
                                 color = TextPrimary,
-                                fontSize = 16.sp,
+                                fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = "Music Genome Project attributes",
+                                fontFamily = BodyFontFamily,
                                 color = TextSecondary,
                                 fontSize = 12.sp
                             )
@@ -191,7 +196,7 @@ fun ExplainSongDialog(
                                     text = "Querying Pandora Music Genome...",
                                     color = TextSecondary,
                                     fontSize = 13.sp,
-                                    fontFamily = FontFamily.Monospace
+                                    fontFamily = MonoFontFamily
                                 )
                             }
                         }
@@ -199,9 +204,9 @@ fun ExplainSongDialog(
                             Text(
                                 text = explanationText,
                                 color = TerminalPrimary,
-                                fontSize = 13.sp,
-                                lineHeight = 20.sp,
-                                fontFamily = FontFamily.SansSerif,
+                                fontSize = 13.5.sp,
+                                lineHeight = 21.sp,
+                                fontFamily = BodyFontFamily,
                                 modifier = Modifier
                                     .padding(14.dp)
                                     .testTag("explain_result_text")
@@ -211,6 +216,7 @@ fun ExplainSongDialog(
                             Column(modifier = Modifier.padding(14.dp)) {
                                 Text(
                                     text = errorMessage ?: "No explanation provided by Pandora for this track.",
+                                    fontFamily = BodyFontFamily,
                                     color = TextSecondary,
                                     fontSize = 13.sp,
                                     lineHeight = 20.sp,
@@ -241,7 +247,7 @@ fun ExplainSongDialog(
                 // CLI terminal command hint
                 Text(
                     text = "$ pianobar --explain",
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     color = PianoGreen,
                     fontSize = 11.sp
                 )

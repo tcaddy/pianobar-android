@@ -73,6 +73,9 @@ import com.aistudio.pianobar.kxuvzq.ui.components.StationSelectionSheet
 import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopBackdrop
 import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopGradients
 import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopStatusBanner
+import com.aistudio.pianobar.kxuvzq.ui.theme.BodyFontFamily
+import com.aistudio.pianobar.kxuvzq.ui.theme.DisplayFontFamily
+import com.aistudio.pianobar.kxuvzq.ui.theme.MonoFontFamily
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoGreen
@@ -170,7 +173,7 @@ fun PianobarScreen(
                                     )
                                 } else {
                                     TextStyle(
-                                        fontFamily = FontFamily.Monospace,
+                                        fontFamily = MonoFontFamily,
                                         fontWeight = FontWeight.Bold,
                                         color = PianoGreen,
                                         fontSize = 14.sp
@@ -195,7 +198,8 @@ fun PianobarScreen(
                                             color = TextPrimary,
                                             fontSize = 18.sp,
                                             fontWeight = FontWeight.Bold,
-                                            fontFamily = FontFamily.Monospace
+                                            fontFamily = DisplayFontFamily,
+                                            letterSpacing = (-0.2).sp
                                         )
                                     }
                                 )
@@ -205,11 +209,12 @@ fun PianobarScreen(
                                     color = if (isSlop) PianoCyan else PianoGreen,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
-                                    fontFamily = FontFamily.Monospace
+                                    fontFamily = MonoFontFamily
                                 )
                             }
                             Text(
                                 text = if (isSlop) "Autonomous Audio Cloud ✨" else "Pandora Radio Client",
+                                fontFamily = BodyFontFamily,
                                 color = TextSecondary,
                                 fontSize = 11.sp
                             )

@@ -64,6 +64,9 @@ import com.aistudio.pianobar.kxuvzq.R
 import com.aistudio.pianobar.kxuvzq.model.PlayerState
 import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopBentoStrip
 import com.aistudio.pianobar.kxuvzq.ui.theme.AiSlopGradients
+import com.aistudio.pianobar.kxuvzq.ui.theme.BodyFontFamily
+import com.aistudio.pianobar.kxuvzq.ui.theme.DisplayFontFamily
+import com.aistudio.pianobar.kxuvzq.ui.theme.MonoFontFamily
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoAmber
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoCyan
 import com.aistudio.pianobar.kxuvzq.ui.theme.PianoDarkBg
@@ -268,7 +271,7 @@ fun NowPlayingCard(
                         color = if (isSlop) PianoPurple else TextSecondary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = FontFamily.Monospace
+                        fontFamily = MonoFontFamily
                     )
                 }
 
@@ -304,8 +307,11 @@ fun NowPlayingCard(
                     )
                 } else {
                     TextStyle(
+                        fontFamily = DisplayFontFamily,
                         color = TextPrimary,
-                        fontSize = 20.sp,
+                        fontSize = 21.sp,
+                        lineHeight = 27.sp,
+                        letterSpacing = (-0.3).sp,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -317,6 +323,7 @@ fun NowPlayingCard(
 
             Text(
                 text = track?.artist ?: if (state.isBuffering) "Retrieving metadata from Pandora..." else "Pianobar",
+                fontFamily = BodyFontFamily,
                 color = PianoCyan,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
@@ -374,17 +381,25 @@ fun NowPlayingCard(
             ) {
                 Text(
                     text = currentFormatted,
-                    color = TextSecondary,
-                    fontSize = 12.sp
+                    style = TextStyle(
+                        fontFamily = MonoFontFamily,
+                        fontFeatureSettings = "tnum",
+                        color = TextSecondary,
+                        fontSize = 11.5.sp
+                    )
                 )
                 Text(
                     text = totalFormatted,
-                    color = TextSecondary,
-                    fontSize = 12.sp
+                    style = TextStyle(
+                        fontFamily = MonoFontFamily,
+                        fontFeatureSettings = "tnum",
+                        color = TextSecondary,
+                        fontSize = 11.5.sp
+                    )
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Playback and Pianobar control buttons
             Row(
@@ -509,7 +524,7 @@ fun NowPlayingCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Explain (e) Music Genome Action
             Surface(
@@ -520,11 +535,11 @@ fun NowPlayingCard(
                     .heightIn(min = 48.dp)
                     .testTag("explain_song_button"),
                 shape = RoundedCornerShape(12.dp),
-                color = if (isSlop) PianoSurfaceElevated.copy(alpha = 0.72f) else PianoSurfaceElevated,
+                color = if (isSlop) PianoSurfaceElevated.copy(alpha = 0.72f) else PianoSurfaceElevated.copy(alpha = 0.65f),
                 border = if (isSlop && track != null) {
                     androidx.compose.foundation.BorderStroke(1.dp, AiSlopGradients.borderBrush)
                 } else {
-                    androidx.compose.foundation.BorderStroke(1.dp, PianoSurfaceBorder)
+                    androidx.compose.foundation.BorderStroke(1.dp, PianoSurfaceBorder.copy(alpha = 0.75f))
                 }
             ) {
                 Row(
@@ -543,6 +558,7 @@ fun NowPlayingCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Why is this playing?",
+                        fontFamily = BodyFontFamily,
                         color = if (track != null) TextPrimary else TextSecondary.copy(alpha = 0.5f),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
@@ -552,7 +568,7 @@ fun NowPlayingCard(
                         text = "(e)",
                         color = if (track != null) TextSecondary else TextSecondary.copy(alpha = 0.4f),
                         fontSize = 11.sp,
-                        fontFamily = FontFamily.Monospace
+                        fontFamily = MonoFontFamily
                     )
                 }
             }
@@ -568,11 +584,11 @@ fun NowPlayingCard(
                     .heightIn(min = 48.dp)
                     .testTag("tired_button"),
                 shape = RoundedCornerShape(12.dp),
-                color = if (isSlop) PianoSurfaceElevated.copy(alpha = 0.72f) else PianoSurfaceElevated,
+                color = if (isSlop) PianoSurfaceElevated.copy(alpha = 0.72f) else PianoSurfaceElevated.copy(alpha = 0.65f),
                 border = if (isSlop && track != null) {
                     androidx.compose.foundation.BorderStroke(1.dp, AiSlopGradients.borderBrush)
                 } else {
-                    androidx.compose.foundation.BorderStroke(1.dp, PianoSurfaceBorder)
+                    androidx.compose.foundation.BorderStroke(1.dp, PianoSurfaceBorder.copy(alpha = 0.75f))
                 }
             ) {
                 Row(
@@ -591,6 +607,7 @@ fun NowPlayingCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "I'm tired of this song",
+                        fontFamily = BodyFontFamily,
                         color = if (track != null) TextPrimary else TextSecondary.copy(alpha = 0.5f),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
@@ -600,7 +617,7 @@ fun NowPlayingCard(
                         text = "(30d)",
                         color = if (track != null) TextSecondary else TextSecondary.copy(alpha = 0.4f),
                         fontSize = 11.sp,
-                        fontFamily = FontFamily.Monospace
+                        fontFamily = MonoFontFamily
                     )
                 }
             }
