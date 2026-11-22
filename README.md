@@ -1,8 +1,10 @@
 # Pianobar for Android
 
-An authentic Android client inspired by the open-source console client [pianobar](https://6xq.net/pianobar/) by Lars-Dominik Braun and contributors ([GitHub: PromyLOPh/pianobar](https://github.com/PromyLOPh/pianobar)).
+An authentic Android client inspired by the open-source console client [pianobar](https://6xq.net/pianobar/) by Lars-Dominik Braun and contributors ([Codeberg: purplesym/pianobar](https://codeberg.org/purplesym/pianobar), formerly [GitHub: PromyLOPh/pianobar](https://github.com/PromyLOPh/pianobar)).
 
 Pianobar brings the minimalist, hacker-friendly Pandora radio experience to modern Android with Jetpack Compose, Material Design 3, real background media streaming, and an integrated retro CLI mode.
+
+It is designed as a **minimal, privacy-respecting personal app**: no ads, no analytics, no trackers, and no unnecessary background services. It uses only the minimal Google build integration required for packaging/export in Google AI Studio, so the owner can build and install it as a personal app without adding telemetry or third-party tracking SDKs. Release builds use R8 shrinking/minification to keep the download small and runtime overhead low.
 
 ---
 
@@ -16,7 +18,7 @@ Pianobar brings the minimalist, hacker-friendly Pandora radio experience to mode
   - Full ASCII terminal interface matching original pianobar console prompts (`[i]`, `[#]`, `[+]`, `[-]`, `[?]`, `[>]`, `[z]`).
   - Single-character command shortcuts (`p` play/pause, `n` skip, `+` love, `-` ban, `t` snooze, `b` bookmark, `e` explain, `s` stations, `h` history, `sleep` sleep timer, `q` quit).
 - **Modern Jetpack Compose GUI**:
-  - Terminal aesthetic with six selectable palettes: Midnight, Amber CRT, Ice, Solarized, Newsprint (light), and AI Slop (an intentionally loud violet/cyan parody theme). Choose one under Settings → Appearance; the choice is remembered across launches.
+  - Terminal aesthetic with six selectable palettes: Midnight, Amber CRT, Ice, Solarized, Newsprint (light), and AI Slop (an intentionally loud violet/cyan parody theme inspired by [SlopStrap](https://slopstrap.mikelacher.com)). Choose one under Settings → Appearance; the choice is remembered across launches.
   - Real-time animated audio visualizer bars responding to playback state.
   - Searchable, alphabetized station browser.
   - Last station memory: automatically restores your last played station on startup.
@@ -35,18 +37,25 @@ Pianobar brings the minimalist, hacker-friendly Pandora radio experience to mode
 ## Attribution & Links
 
 - **Original Pianobar**: [https://6xq.net/pianobar/](https://6xq.net/pianobar/)
-- **Original Source Repository**: [https://github.com/PromyLOPh/pianobar](https://github.com/PromyLOPh/pianobar)
+- **Original Source Repository**: [https://codeberg.org/purplesym/pianobar](https://codeberg.org/purplesym/pianobar) (moved from [GitHub: PromyLOPh/pianobar](https://github.com/PromyLOPh/pianobar))
 - **Author**: Lars-Dominik Braun (PromyLOPh) and the Pianobar open-source community.
 - **License**: The original pianobar C implementation is licensed under the MIT/X11 license.
 
 ---
+
+## Minimal by Design / AI Studio Personal App
+
+- **No tracking or ads**: No analytics, crash-reporting SDKs, ad SDKs, or third-party trackers.
+- **Minimal permissions**: Only network/audio/foreground-service/notification permissions needed for Pandora streaming and media controls.
+- **Low overhead**: Lightweight Compose UI, no background telemetry, and R8 minification/resource shrinking enabled for release builds to keep download/runtime footprint small.
+- **AI Studio packaging**: Includes only the minimal Google build/plugin integration required for Google AI Studio export/signing workflows, so the owner can package and install it as a personal app.
 
 ## Tech Stack & Architecture
 
 - **Language**: Kotlin 2.2+
 - **UI Toolkit**: Jetpack Compose with Material 3 (M3)
 - **Architecture**: MVVM with Kotlin Coroutines & StateFlow
-- **Networking**: OkHttp, Retrofit, Moshi
+- **Networking**: OkHttp
 - **Media Engine**: Android `MediaPlayer` wrapped in foreground `MediaSessionService`
 - **Security**: Android KeyStore Hardware TEE/StrongBox (AES-GCM-256)
 - **Target SDK**: Android 16 (API 36)

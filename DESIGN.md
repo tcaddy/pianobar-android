@@ -47,7 +47,7 @@ Role groups:
 
 `ai-slop` is a deliberate, self-contained joke: it pairs the purple-to-cyan,
 emerald-status, pink-error color language of LLM-generated SaaS pages with
-Slopstrap-inspired ambient glowing orbs, tech grid lines, a pulsing dual-ring
+[SlopStrap](https://slopstrap.mikelacher.com)-inspired ambient glowing orbs, tech grid lines, a pulsing dual-ring
 status pill, gradient borders/text/FAB, and a KPI bento strip—all strictly
 gated behind `isAiSlopTheme` so the five core palettes stay clean and flat. It
 is never the default.
