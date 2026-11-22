@@ -29,6 +29,7 @@ object PandoraBlowfishCrypto {
      * memcpy (paddedInput, s, inputLen);
      * gcry_cipher_encrypt (h, paddedInput, paddedInputLen, NULL, 0);
      */
+    @Suppress("GetInstance")
     fun encrypt(plainJson: String): String {
         val inputBytes = plainJson.toByteArray(StandardCharsets.UTF_8)
         val inputLen = inputBytes.size
@@ -36,6 +37,7 @@ object PandoraBlowfishCrypto {
         val paddedInput = ByteArray(paddedLen) // Java initializes ByteArrays to 0x00 (calloc behavior)
         System.arraycopy(inputBytes, 0, paddedInput, 0, inputLen)
 
+        // Pandora partner protocol requires Blowfish/ECB/NoPadding; do not "upgrade".
         val cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
         val secretKey = SecretKeySpec(ENCRYPT_KEY.toByteArray(StandardCharsets.UTF_8), ALGORITHM)
         cipher.init(Cipher.ENCRYPT_MODE, secretKey)
@@ -46,8 +48,10 @@ object PandoraBlowfishCrypto {
     /**
      * Mirrors PianoDecryptString in crypt.c
      */
+    @Suppress("GetInstance")
     fun decrypt(cipherHex: String): String {
         val rawBytes = hexToBytes(cipherHex)
+        // Pandora partner protocol requires Blowfish/ECB/NoPadding; do not "upgrade".
         val cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
         val secretKey = SecretKeySpec(DECRYPT_KEY.toByteArray(StandardCharsets.UTF_8), ALGORITHM)
         cipher.init(Cipher.DECRYPT_MODE, secretKey)
@@ -59,8 +63,10 @@ object PandoraBlowfishCrypto {
      * Mirrors response.c in libpiano:
      * Drops the first 4 bytes of garbage, extracts only the digits of the timestamp.
      */
+    @Suppress("GetInstance")
     fun decryptSyncTime(syncTimeHex: String): Long {
         val rawBytes = hexToBytes(syncTimeHex)
+        // Pandora partner protocol requires Blowfish/ECB/NoPadding; do not "upgrade".
         val cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
         val secretKey = SecretKeySpec(DECRYPT_KEY.toByteArray(StandardCharsets.UTF_8), ALGORITHM)
         cipher.init(Cipher.DECRYPT_MODE, secretKey)

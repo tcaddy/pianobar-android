@@ -44,7 +44,6 @@ class PianobarWidgetTest {
             R.drawable.widget_play_btn_solarized,
             R.drawable.widget_play_btn_newsprint,
             R.drawable.widget_play_btn_ai_slop,
-            R.drawable.widget_artwork_bg,
             R.drawable.widget_btn_ripple,
             R.drawable.widget_play_btn_ripple,
             R.drawable.ic_icon_snooze

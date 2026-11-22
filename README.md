@@ -49,6 +49,7 @@ It is designed as a **minimal, privacy-respecting personal app**: no ads, no ana
 - **Minimal permissions**: Only network/audio/foreground-service/notification permissions needed for Pandora streaming and media controls.
 - **Low overhead**: Lightweight Compose UI, no background telemetry, and R8 minification/resource shrinking enabled for release builds to keep download/runtime footprint small.
 - **AI Studio packaging**: Includes only the minimal Google build/plugin integration required for Google AI Studio export/signing workflows, so the owner can package and install it as a personal app.
+- **Trust audit**: See [TRUST_AUDIT.md](TRUST_AUDIT.md) for the permission/component allowlist, CI audit checks, and privacy review checklist.
 
 ## Tech Stack & Architecture
 
