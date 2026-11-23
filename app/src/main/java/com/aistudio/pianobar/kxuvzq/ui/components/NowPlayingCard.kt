@@ -93,8 +93,8 @@ fun NowPlayingCard(
     onExplainTrack: () -> Unit,
     onSeek: (Long) -> Unit,
     onOpenStationSelect: () -> Unit,
+    modifier: Modifier = Modifier,
     onTiredTrack: () -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
     val track = state.currentTrack
     val isLoved = track != null && state.lovedTrackIds.contains(track.id)
