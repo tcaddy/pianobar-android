@@ -126,6 +126,15 @@
       "groupSlug": "testing"
     },
     {
+      "description": "Disable automated updates for Robolectric android-all-instrumented SDK jars. The version string encodes the Android API level, AOSP build ID, and PREINSTRUMENTED_VERSION hardcoded in org.robolectric:robolectric's DefaultSdkProvider for @Config(sdk = [34]) (14-robolectric-10818077-i7). Bumping 14 -> 17 switches from Android 14 (SDK 34) to Android 17 (SDK 37, which also requires JDK 21 while CI runs JDK 17) and breaks offline Robolectric tests; update manually only when bumping Robolectric or @Config(sdk).",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": [
+        "org.robolectric:android-all-instrumented",
+        "org.robolectric:android-all"
+      ],
+      "enabled": false
+    },
+    {
       "description": "Group GitHub Actions workflow dependencies together",
       "matchManagers": ["github-actions"],
       "groupName": "GitHub Actions",
